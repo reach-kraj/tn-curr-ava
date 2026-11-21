@@ -63,8 +63,50 @@ export default function App() {
   return <Explorer data={data} onData={setData} />;
 }
 
+/** Page-shaped placeholder shown while the timetable loads (also the static HTML on refresh). */
 function Skeleton() {
-  return <TrainLoader />;
+  const rows = [0.62, 0.48, 0.7, 0.55, 0.66, 0.5, 0.6];
+  return (
+    <div className="skeleton" aria-busy="true">
+      <p className="sr-only" role="status">Loading the Tamil Nadu timetable…</p>
+      <header className="topbar">
+        <div className="wrap topbar-in">
+          <span className="brand"><TrainLogo />TN Train Booking</span>
+          <span className="sk sk-search" />
+          <span className="sk sk-pill" />
+        </div>
+      </header>
+      <section className="journey-bar" aria-hidden="true">
+        <div className="wrap">
+          <div className="sk-journey">
+            <span className="sk sk-field" /><span className="sk sk-field" /><span className="sk sk-btn" /><span className="sk sk-field sm" />
+            <span className="sk-chips">{[5, 7, 6, 6, 8].map((w, i) => <span key={i} className="sk sk-chip" style={{ width: `${w}rem` }} />)}</span>
+          </div>
+        </div>
+      </section>
+      <div className="wrap layout sk-layout" aria-hidden="true">
+        <div className="side">
+          <div className="sk-board"><span className="sk sk-line" style={{ width: "40%" }} /><span className="sk sk-line lg" style={{ width: "75%" }} /></div>
+          <div className="sk-counts">{[0, 1, 2].map((i) => <span key={i} className="sk sk-count" />)}</div>
+          <span className="sk sk-card" />
+        </div>
+        <div className="content">
+          <div className="sk-tabs">{[0, 1, 2].map((i) => <span key={i} className="sk sk-tab" />)}</div>
+          <div className="sk-tools">{[3.5, 3, 3, 5.5, 7].map((w, i) => <span key={i} className="sk sk-tool" style={{ width: `${w}rem` }} />)}</div>
+          <div className="sk-listcard">
+            <div className="sk-sec"><span className="sk sk-line" style={{ width: "8rem" }} /><span className="sk sk-line" style={{ width: "11rem" }} /></div>
+            {rows.map((w, i) => (
+              <div key={i} className="sk-trow" style={{ animationDelay: `${i * 0.05}s` }}>
+                <span className="sk sk-time" />
+                <span className="sk-tmain"><span className="sk sk-line" style={{ width: `${w * 100}%` }} /><span className="sk sk-line sm" style={{ width: `${w * 70}%` }} /></span>
+                <span className="sk sk-flap" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 type Tab = "now" | "advance" | "holidays";
@@ -299,7 +341,6 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       </header>
 
       <section className="journey-bar" aria-label="Your journey">
-        <span className="jb-runner" aria-hidden="true"><TrainLogo height={15} /></span>
         <div className="wrap">
           <button type="button" className="jb-summary" aria-expanded={jbOpen} aria-controls="jb-form" onClick={() => setJbOpen((o) => !o)}>
             <span className="jb-sum-main">

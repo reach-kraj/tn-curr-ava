@@ -1125,16 +1125,6 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 
 /* ================= motion v2 — railway details that move (transform/opacity only: GPU, no layout) ================= */
 
-/* a small train runs along the journey track now and then */
-.jb-runner { position: absolute; left: 0; bottom: calc(0.45rem + 9px); z-index: 0; pointer-events: none; will-change: transform; animation: jbRun 22s linear 1.2s infinite both; }
-.jb-runner .train-logo { display: block; filter: none; }
-@keyframes jbRun {
-  0% { transform: translateX(100vw); opacity: 0; }
-  2% { opacity: 1; }
-  38% { opacity: 1; }
-  40%, 100% { transform: translateX(-4rem); opacity: 0; }
-}
-
 /* split-flap digits clack over one after another, like a real board */
 .flap-cell:nth-child(2) { animation-delay: 0.05s; } .flap-cell:nth-child(3) { animation-delay: 0.1s; }
 .flap-cell:nth-child(4) { animation-delay: 0.15s; } .flap-cell:nth-child(5) { animation-delay: 0.2s; }
@@ -1187,6 +1177,52 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 /* a pressed-in feel for every chip and segmented button */
 .chip:active, .seg button:active, .tabs [role="tab"]:active { transform: scale(0.97); }
 .journey-bar { overflow-x: clip; }
-/* room for the running train between the journey card and the track */
-.journey-bar { padding-bottom: 2rem; }
-@media (max-width: 760px) { .journey-bar { padding-bottom: 1.65rem; } .jb-runner .train-logo { height: 12px; width: auto; } }
+
+/* ================= train card: smooth open and close ================= */
+.details-wrap { display: grid; grid-template-rows: 1fr; animation: cardOpen 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.details-wrap.closing { animation: cardClose 0.22s cubic-bezier(0.4, 0, 1, 1) both; }
+.details-clip { min-height: 0; overflow: hidden; }
+.details-clip > .details { animation: none; }
+.details-wrap.closing .details > * { animation: none; }
+@keyframes cardOpen { from { grid-template-rows: 0fr; opacity: 0; } to { grid-template-rows: 1fr; opacity: 1; } }
+@keyframes cardClose { from { grid-template-rows: 1fr; opacity: 1; } to { grid-template-rows: 0fr; opacity: 0; } }
+.card { transition: background-color 0.25s ease, box-shadow 0.25s ease; }
+.card.on { box-shadow: inset 3px 0 0 var(--board); }
+
+/* ================= page skeleton (shown on load / refresh) ================= */
+.skeleton .sk { position: relative; overflow: hidden; display: block; background: #e6ebf3; border-radius: 10px; animation: none; }
+.skeleton .sk::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.65), transparent); animation: skSweep 1.4s ease-in-out infinite; }
+@keyframes skSweep { to { transform: translateX(100%); } }
+.skeleton .topbar-in { display: flex; align-items: center; gap: 1rem; }
+.sk-search { flex: 1; max-width: 34rem; height: 2.6rem; margin-inline: auto; border-radius: 12px !important; }
+.sk-pill { width: 7.5rem; height: 2.5rem; border-radius: 12px !important; }
+.sk-journey { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 9rem minmax(0, 0.9fr); gap: 0.75rem; padding: 1.1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; box-shadow: var(--shadow); }
+.sk-field { height: 3rem; } .sk-btn { height: 3rem; background: #f6e7a3 !important; }
+.sk-chips { grid-column: 1 / -1; display: flex; gap: 0.5rem; overflow: hidden; }
+.sk-chip { height: 2rem; flex: none; border-radius: 999px !important; }
+.sk-layout { padding-block: 1.5rem 2rem; }
+.sk-board { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.8rem; padding: 0.8rem 0.95rem; background: #fde98a; border: 3px solid #d9c35a; border-radius: 6px; }
+.sk-board .sk { background: #f3d64e; }
+.sk-line { height: 0.85rem; border-radius: 6px !important; } .sk-line.lg { height: 1.5rem; } .sk-line.sm { height: 0.7rem; }
+.sk-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.4rem; }
+.sk-count { height: 4rem; border-radius: 12px !important; }
+.sk-card { height: 8.5rem; border-radius: var(--radius) !important; }
+.sk-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+.sk-tab { height: 2.75rem; }
+.sk-tools { display: flex; gap: 0.5rem; margin-bottom: 1rem; overflow: hidden; }
+.sk-tool { height: 2.4rem; flex: none; }
+.sk-listcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.sk-sec { display: flex; justify-content: space-between; padding: 0.85rem 0.9rem; border-bottom: 1px solid var(--line-2); }
+.sk-trow { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) 6.5rem; gap: 0.9rem; align-items: center; padding: 0.85rem 0.9rem; border-top: 1px solid var(--line-2); animation: fadeUp 0.4s ease-out both; }
+.sk-time { height: 1.6rem; } .sk-flap { height: 1.6rem; }
+.sk-tmain { display: flex; flex-direction: column; gap: 0.4rem; }
+@media (max-width: 1020px) { .sk-layout { grid-template-columns: 1fr; } .sk-layout .side { position: static; } .sk-card { display: none; } }
+@media (max-width: 760px) {
+  .skeleton .topbar-in { flex-wrap: wrap; }
+  .sk-search { order: 3; flex-basis: 100%; max-width: none; }
+  .sk-pill { margin-left: auto; }
+  .sk-journey { grid-template-columns: 1fr; }
+  .sk-journey > .sk-field:nth-child(2), .sk-journey > .sk-btn, .sk-journey > .sk-field.sm, .sk-chips { display: none; }
+  .sk-trow { grid-template-columns: 3.5rem minmax(0, 1fr) 5rem; }
+}
+.sk-journey { padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; }

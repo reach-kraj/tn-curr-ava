@@ -31,6 +31,12 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
   const st = status(d, now);
   const detailsId = `train-${d.ti}`;
   const [shared, setShared] = useState<string | null>(null);
+  // keep the details mounted while they fold away, then unmount (no motion → unmount at once)
+  const [shown, setShown] = useState(open);
+  if (open && !shown) setShown(true);
+  const reduce = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!open && shown && reduce) setShown(false);
+  const closing = shown && !open;
   const tag = (ms: number) => { const r = relDay(ms, travelDay); return r === "same day" ? "" : r; };
 
   const reminder = (): ReminderInput => ({
@@ -111,57 +117,61 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
         <svg className="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
       </button>
 
-      {open && (
-        <div className="details" id={detailsId}>
-          <ol className="tl" style={{ ["--n" as string]: steps.length }}>
-            {steps.map((s, i) => (
-              <li key={i} className={s.cls}>
-                <span className="tl-t">{s.t}</span>
-                <span className="tl-s">{s.s}</span>
-                {s.sub && <span className="tl-sub">{s.sub}</span>}
-              </li>
-            ))}
-          </ol>
+      {shown && (
+        <div className={`details-wrap${closing ? " closing" : ""}`} onAnimationEnd={(e) => { if (closing && e.target === e.currentTarget) setShown(false); }}>
+          <div className="details-clip">
+            <div className="details" id={detailsId}>
+            <ol className="tl" style={{ ["--n" as string]: steps.length }}>
+              {steps.map((s, i) => (
+                <li key={i} className={s.cls}>
+                  <span className="tl-t">{s.t}</span>
+                  <span className="tl-s">{s.s}</span>
+                  {s.sub && <span className="tl-sub">{s.sub}</span>}
+                </li>
+              ))}
+            </ol>
 
-          <div className="facts">
-            <span>{d.startsHere ? "Starts here" : <>Arrives <b>{clock(d.arr)}</b> · halt <b>{Math.max(0, d.dep - d.arr)} min</b></>}</span>
-            {d.reach != null && <span>Journey <b>{duration(d.reach - d.srcDep)}</b></span>}
-            <span className="days" aria-label={`Runs on ${DAYS.filter((_, i) => (d.train[5] >> i) & 1).join(", ")}`}>
-              {DAYS.map((l, i) => <i key={i} aria-hidden="true" className={(d.train[5] >> i) & 1 ? "y" : ""}>{l[0]}</i>)}
-            </span>
-          </div>
-
-          {st.kind === "soon" ? (
-            <div className="remind">
-              <span className="remind-k">Remind me when current availability opens</span>
-              <div className="remind-row">
-                <a className="rbtn" href={googleCalendarUrl(reminder())} target="_blank" rel="noreferrer">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
-                  Google Calendar<span className="sr-only"> (opens in a new tab)</span>
-                </a>
-                <button type="button" className="rbtn" onClick={downloadIcs}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>
-                  Phone alarm
-                </button>
-                <button type="button" className="rbtn" onClick={share}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" /></svg>
-                  <span aria-live="polite">{shared ?? "Share"}</span>
-                </button>
-              </div>
-              <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when current availability opens.</span>
+            <div className="facts">
+              <span>{d.startsHere ? "Starts here" : <>Arrives <b>{clock(d.arr)}</b> · halt <b>{Math.max(0, d.dep - d.arr)} min</b></>}</span>
+              {d.reach != null && <span>Journey <b>{duration(d.reach - d.srcDep)}</b></span>}
+              <span className="days" aria-label={`Runs on ${DAYS.filter((_, i) => (d.train[5] >> i) & 1).join(", ")}`}>
+                {DAYS.map((l, i) => <i key={i} aria-hidden="true" className={(d.train[5] >> i) & 1 ? "y" : ""}>{l[0]}</i>)}
+              </span>
             </div>
-          ) : (
-            st.kind === "open" ? (
-              <div className="book-row">
-                <p><Signal aspect="open" /> Current availability is open now. Book before it leaves {shortName(here.name)}.</p>
-                <BookButton label={`Book ${d.num}`} />
+
+            {st.kind === "soon" ? (
+              <div className="remind">
+                <span className="remind-k">Remind me when current availability opens</span>
+                <div className="remind-row">
+                  <a className="rbtn" href={googleCalendarUrl(reminder())} target="_blank" rel="noreferrer">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+                    Google Calendar<span className="sr-only"> (opens in a new tab)</span>
+                  </a>
+                  <button type="button" className="rbtn" onClick={downloadIcs}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>
+                    Phone alarm
+                  </button>
+                  <button type="button" className="rbtn" onClick={share}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" /></svg>
+                    <span aria-live="polite">{shared ?? "Share"}</span>
+                  </button>
+                </div>
+                <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when current availability opens.</span>
               </div>
             ) : (
-              <p className="remind-note">This train has left.</p>
-            )
-          )}
+              st.kind === "open" ? (
+                <div className="book-row">
+                  <p><Signal aspect="open" /> Current availability is open now. Book before it leaves {shortName(here.name)}.</p>
+                  <BookButton label={`Book ${d.num}`} />
+                </div>
+              ) : (
+                <p className="remind-note">This train has left.</p>
+              )
+            )}
 
-          <RouteStops d={d} stops={stops} here={here} stationName={stationName} />
+            <RouteStops d={d} stops={stops} here={here} stationName={stationName} />
+            </div>
+          </div>
         </div>
       )}
     </article>
