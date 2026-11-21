@@ -10,6 +10,8 @@ import Footer from "./Footer";
 import Signal from "./Signal";
 import ThemedSelect from "./ThemedSelect";
 import BookButton from "./BookButton";
+import ReminderMenu from "./ReminderMenu";
+import { trainEvent } from "@/lib/reminders";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
@@ -353,6 +355,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
           </dl>
 
           {next ? (
+            <div className="next-wrap">
             <button type="button" className="next-up" onClick={() => { if (next.day !== travelDay) setTravelDay(next.day); showTrain(next.d.ti); }}
               aria-label={`Next to open${next.day !== travelDay ? ` (tomorrow's train)` : ""}: ${next.d.num} ${next.d.name}, ${stationName(next.d.orig)} to ${stationName(next.d.dest)}. Current availability opens at ${clockAt(next.d.opens)}, in ${duration(next.d.opens - now)}. Show this train.`}>
               <span className="next-k"><span className="next-k-row"><Signal aspect="soon" />Next to open</span><small>{dayWord(next.d.opens, now)} · in {duration(next.d.opens - now)}</small></span>
@@ -363,6 +366,14 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 <small>departs {shortName(sel.name)} {clock(next.d.dep)}{next.day !== travelDay ? ` · ${dayLabel(next.day)}` : ""}</small>
               </span>
             </button>
+            <div className="next-remind">
+              <ReminderMenu label="Remind me when it opens" items={[{
+                key: "next", label: `${next.d.num} ${next.d.name} · opens ${dayWord(next.d.opens, now)} ${clockAt(next.d.opens)}`,
+                event: trainEvent({ d: next.d, boardAt: sel.name, sourceName: stationName(next.d.orig), destName: stationName(next.d.dest), url: `${typeof location !== "undefined" ? location.origin : ""}/#${sel.code}` }),
+                file: `current-availability-${next.d.num}.ics`,
+              }]} />
+            </div>
+            </div>
           ) : (
             <p className="side-note">No more trains open for current availability on {dayLabel(travelDay)}.</p>
           )}

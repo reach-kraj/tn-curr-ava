@@ -131,3 +131,12 @@ export function downloadIcs(ics: string, name: string) {
   a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
 }
+
+/** The current-availability reminder for a train, as a generic calendar event. */
+export function trainEvent(r: ReminderInput): EventInput {
+  const { title, body } = reminderText(r);
+  return {
+    uid: `ca-${r.d.num}-${icsStamp(r.d.opens)}`, title, body, start: r.d.opens,
+    location: `${shortName(r.boardAt)} railway station`, alarm: `Current availability for ${r.d.num} opens`,
+  };
+}

@@ -46,3 +46,11 @@ test("generic advance-booking event: Google link and .ics", async () => {
   expect(ics).toContain("DTSTART:20261115T023000Z");
   expect(ics.match(/BEGIN:VALARM/g)).toHaveLength(2);
 });
+
+test("trainEvent: reminder at the current-availability opening time", async () => {
+  const { trainEvent, eventGoogleUrl } = await import("./reminders");
+  const e = trainEvent(input);
+  expect(e.start).toBe(d.opens);
+  expect(e.title).toBe("Current availability opens · 16103 TBM RMM EXP");
+  expect(new URL(eventGoogleUrl(e)).searchParams.get("dates")).toBe("20261121T024000Z/20261121T025500Z");
+});

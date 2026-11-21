@@ -10,6 +10,7 @@ import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/re
 import Signal from "./Signal";
 import ThemedSelect from "./ThemedSelect";
 import BookButton from "./BookButton";
+import ReminderMenu, { type ReminderItem } from "./ReminderMenu";
 
 const longDay = (day: string) => { const p = istParts(istInstant(day, 0)); return `${DOW[p.dow]} ${p.d} ${MON[p.m - 1]} ${p.y}`; };
 
@@ -199,6 +200,25 @@ export function HolidaysView({ now, onPlan, planned }: { now: number; onPlan: (d
   );
 }
 
+function tripReminders(name: string, trips: { kind: string; day: string }[], now: number): ReminderItem[] {
+  return trips
+    .filter((t) => advanceOpens(t.day) > now)
+    .map((t) => {
+      const opens = advanceOpens(t.day);
+      return {
+        key: `${t.kind}-${t.day}`,
+        label: `${t.kind} ${dayLabel(t.day)} · booking opens ${dayLabel(istDay(opens))}, 8:00 AM`,
+        file: `advance-booking-${t.day}.ics`,
+        event: {
+          uid: `hol-${t.day}`, start: opens,
+          title: `Advance booking opens · ${t.kind.toLowerCase()} ${dayLabel(t.day)} (${name})`,
+          body: `Book train tickets for ${longDay(t.day)} (${name}). Advance reservation opens 60 days before, at 8:00 AM IST on ${longDay(istDay(opens))}.\nBook: https://www.irctc.co.in/nget/train-search`,
+          alarm: `Booking for ${dayLabel(t.day)} opens`,
+        },
+      };
+    });
+}
+
 function TripButton({ kind, hint, day, now, today, onPlan }: { kind: string; hint: string; day: string; now: number; today: string; onPlan: (d: string) => void }) {
   const st = stateText(openState(day, now, today));
   const opensOn = istDay(advanceOpens(day));
@@ -236,6 +256,7 @@ function LongWeekendRow({ w, now, today, onPlan, active }: { w: LongWeekend; now
         <TripButton kind="Go" hint="day before" day={w.go} now={now} today={today} onPlan={onPlan} />
         <TripButton kind="Return" hint="next morning" day={w.back} now={now} today={today} onPlan={onPlan} />
       </div>
+      <ReminderMenu items={tripReminders(w.names.join(" · "), [{ kind: "Go", day: w.go }, { kind: "Return", day: w.back }], now)} label="Remind me when booking opens" />
     </li>
   );
 }
@@ -261,6 +282,7 @@ function FestRow({ b, now, today, onPlan, active }: { b: Break; now: number; tod
           <TripButton kind="Return" hint={b.days === 1 ? "same day" : "last day"} day={b.back} now={now} today={today} onPlan={onPlan} />
           <TripButton kind="Return" hint="day after" day={b.after} now={now} today={today} onPlan={onPlan} />
         </div>
+        <ReminderMenu items={tripReminders(pub.map((h) => h.name).join(" · "), [{ kind: "Go", day: b.go }, { kind: "Return", day: b.back }, { kind: "Return", day: b.after }], now)} label="Remind me when booking opens" />
         {b.leave.map((l) => (
           <div key={l.day} className="leave-tip">
             <span className="leave-badge">+1 leave</span>
