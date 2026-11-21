@@ -64,7 +64,7 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
   const opensTag = tag(d.opens);
 
   const steps = [
-    { cls: "is-open", t: clockAt(d.opens), s: "Current availability opens", sub: opensTag },
+    { cls: "is-open", t: clockAt(d.opens), s: "Current availability opens", sub: [opensTag, dayLabel(istDay(d.opens))].filter(Boolean).join(" · ") },
     ...(d.startsHere ? [] : [{ cls: "", t: clockAt(d.srcDep), s: `Leaves ${shortName(stationName(d.orig))}`, sub: tag(d.srcDep) }]),
     { cls: "is-here", t: clock(d.dep), s: `Departs ${shortName(here.name)}`, sub: "" },
     ...(d.reach != null ? [{ cls: "", t: clockAt(d.reach), s: `Reaches ${shortName(stationName(d.dest))}`, sub: tag(d.reach) }] : []),
@@ -104,14 +104,6 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
 
       {open && (
         <div className="details" id={detailsId}>
-          <div className="board">
-            <div>
-              <div className="board-k">Current availability opens</div>
-              <div className="board-sub">{relDay(d.opens, travelDay)} · {dayLabel(istDay(d.opens))}</div>
-            </div>
-            <FlapTime value={clockAt(d.opens)} />
-          </div>
-
           <ol className="tl" style={{ ["--n" as string]: steps.length }}>
             {steps.map((s, i) => (
               <li key={i} className={s.cls}>
