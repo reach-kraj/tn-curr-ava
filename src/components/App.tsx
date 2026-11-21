@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import WorldMap, { type MapPadding } from "./WorldMap";
 import StationSearch from "./StationSearch";
 import TrainCard from "./TrainCard";
@@ -9,6 +9,10 @@ import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
   RULES, addDays, clockAt, dayLabel, departures, shortName, status, toStations, todayIst, type Rule,
 } from "@/lib/booking";
+import {
+  DAYPARTS, KINDS, NO_FILTERS, activeCount, applyBoardFilters, onwardCodes, sections, trainKind,
+  type BoardFilters, type Daypart, type Kind, type SortBy, type StatusFilter,
+} from "@/lib/filters";
 
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -87,6 +91,17 @@ function Explorer({ data }: { data: Dataset }) {
   const [panelOpen, setPanelOpen] = useState(true);
   const [sheet, setSheet] = useState<Sheet>("peek");
   const [dragPx, setDragPx] = useState<number | null>(null);
+  const [bf, setBf] = useState<BoardFilters>(NO_FILTERS);
+  const [sort, setSort] = useState<SortBy>("dep");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [panelFull, setPanelFull] = useState(false);
+
+  useEffect(() => {
+    if (!panelFull) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPanelFull(false); };
+    addEventListener("keydown", onKey);
+    return () => removeEventListener("keydown", onKey);
+  }, [panelFull]);
 
   // restore station from the link (#CGL) or last visit, and rule preference
   useEffect(() => {
@@ -108,6 +123,7 @@ function Explorer({ data }: { data: Dataset }) {
   const sel = byCode.get(selCode) ?? stations[0];
   const selectStation = useCallback((s: Station, fly = true) => {
     setSelCode(s.code); setOpenTi(null);
+    setBf((f) => (f.to ? { ...f, to: "" } : f));
     store.set("tn.station", s.code);
     history.replaceState(null, "", `#${s.code}`);
     setPanelOpen(true);
@@ -115,39 +131,46 @@ function Explorer({ data }: { data: Dataset }) {
     if (fly) setFlyKey((k) => k + 1);
   }, []);
 
-  const rows = useMemo(
+  const allRows = useMemo(
     () => departures(data, sel.code, travelDay, rule, { reservedOnly, runningOnly, query }),
     [data, sel.code, travelDay, rule, reservedOnly, runningOnly, query],
   );
-  const openNow = rows.filter((r) => status(r, now).kind === "open").length;
-  const next = rows.filter((r) => r.opens > now).sort((a, b) => a.opens - b.opens)[0];
+  const rows = useMemo(() => applyBoardFilters(allRows, bf, now, (ti) => trainStops[ti]), [allRows, bf, now, trainStops]);
+  const secs = useMemo(() => sections(rows, sort, now), [rows, sort, now]);
+  const openNow = allRows.filter((r) => status(r, now).kind === "open").length;
+  const next = allRows.filter((r) => r.opens > now).sort((a, b) => a.opens - b.opens)[0];
+  const destinations = useMemo(() => {
+    const count = new Map<string, number>();
+    for (const d of allRows) for (const c of onwardCodes(d, trainStops[d.ti])) count.set(c, (count.get(c) ?? 0) + 1);
+    return [...count].map(([code, n]) => ({ code, n, name: stationName(code) })).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+  }, [allRows, trainStops, stationName]);
+  const kindsHere = useMemo(() => { const k = new Set(allRows.map((d) => trainKind(d.name))); return KINDS.filter((x) => k.has(x)); }, [allRows]);
+  const nFilters = activeCount(bf);
+  const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const routeTi = hoverTi ?? openTi;
   const route = useMemo(() => (routeTi == null ? null : trainStops[routeTi].map((x) => x.station)), [routeTi, trainStops]);
-  const [fitKey, setFitKey] = useState(0);
-  const openRef = useRef<number | null>(null);
   const toggle = useCallback((ti: number) => {
-    const opening = openRef.current !== ti;
-    openRef.current = opening ? ti : null;
-    setOpenTi(openRef.current);
+    setOpenTi((o) => (o === ti ? null : ti));
     setHoverTi(null);
-    if (opening) setFitKey((k) => k + 1);
   }, []);
   const hover = useCallback((ti: number | null) => { if (!mobile) setHoverTi(ti); }, [mobile]);
 
   // on today's board, scroll the list to the next train still to depart
   const listRef = useRef<HTMLDivElement>(null);
-  const firstUpcoming = travelDay === todayIst(now) ? rows.find((r) => r.hereDep > now)?.ti : undefined;
+  const isToday = travelDay === todayIst(now);
+  const firstUpcoming = isToday && sort === "dep" ? rows.find((r) => r.hereDep > now)?.ti : undefined;
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
     // desktop scrolls the list; phones scroll the whole sheet
     const scroller = mobile ? list.parentElement! : list;
-    const card = firstUpcoming == null ? null : list.querySelector<HTMLElement>(`[data-ti="${firstUpcoming}"]`);
-    const top = card ? scroller.scrollTop + card.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 40 : 0;
+    const target = firstUpcoming == null ? null : list.querySelector<HTMLElement>(".now-line") ?? list.querySelector<HTMLElement>(`[data-ti="${firstUpcoming}"]`);
+    // leave room for the sticky section header above the "Now" line
+    const top = target ? scroller.scrollTop + target.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 52 : 0;
     scroller.scrollTo({ top: Math.max(0, top) });
     // re-run when the station, day, filters or sheet size change, not on every clock tick
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sel.code, travelDay, rule, reservedOnly, runningOnly, query, mobile, sheet === "full"]);
+  }, [sel.code, travelDay, rule, reservedOnly, runningOnly, query, mobile, sheet === "full", bf, sort, panelFull]);
 
   /* ---------- panel / bottom sheet ---------- */
   const sheetH = dragPx ?? sheetPx(sheet, vh);
@@ -179,13 +202,13 @@ function Explorer({ data }: { data: Dataset }) {
     setDragPx(null);
   };
 
-  const panelState = mobile ? `sheet-${sheet}` : panelOpen ? "open" : "closed";
+  const panelState = mobile ? `sheet-${sheet}` : !panelOpen ? "closed" : panelFull ? "open full" : "open";
 
   return (
     <div className={`app${mobile ? " is-mobile" : ""}`}>
       <WorldMap
         data={data} stations={stations} selected={sel} route={route}
-        fitRouteKey={fitKey} flyKey={flyKey} padding={padding}
+        fitRouteKey={openTi == null ? 0 : openTi + 1} flyKey={flyKey} padding={padding}
         onSelect={(s) => selectStation(s, true)}
       />
 
@@ -198,7 +221,7 @@ function Explorer({ data }: { data: Dataset }) {
       {!mobile && !panelOpen && (
         <button type="button" className="panel-tab" onClick={() => setPanelOpen(true)} aria-label="Show train list">
           <span className="panel-tab-code">{sel.code}</span>
-          <span>{rows.length} trains</span>
+          <span>{allRows.length} trains</span>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="m15 6-6 6 6 6" /></svg>
         </button>
       )}
@@ -216,27 +239,43 @@ function Explorer({ data }: { data: Dataset }) {
             <span />
           </div>
         ) : (
-          <button type="button" className="panel-close" onClick={() => setPanelOpen(false)} aria-label="Hide train list">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="m9 6 6 6-6 6" /></svg>
-          </button>
+          <>
+            {!panelFull && (
+              <button type="button" className="panel-close" onClick={() => setPanelOpen(false)} aria-label="Hide train list">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="m9 6 6 6-6 6" /></svg>
+              </button>
+            )}
+            <button type="button" className="panel-full" onClick={() => setPanelFull((f) => !f)} aria-pressed={panelFull}
+              aria-label={panelFull ? "Exit full screen" : "Open the train list full screen"} title={panelFull ? "Exit full screen (Esc)" : "Full screen"}>
+              {panelFull ? (
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+              )}
+              <span>{panelFull ? "Exit full screen" : "Full screen"}</span>
+            </button>
+          </>
         )}
 
         <div className="panel-scroll">
           <div className="head">
+            <div className="head-a">
             <div className="nameboard" aria-live="polite" onClick={() => mobile && setSheet((s) => (s === "peek" ? "half" : s))}>
               <div className="nameboard-top"><span>{sel.code}</span><span>{sel.n} trains stop</span></div>
               <h2>{shortName(sel.name)}</h2>
             </div>
 
             <div className="stats">
-              <div className="stat"><b>{rows.length}</b><span>departing</span></div>
+              <div className="stat"><b>{allRows.length}</b><span>departing</span></div>
               <div className="stat"><b className="ok">{openNow}</b><span>open now</span></div>
               <div className="stat stat-next">
                 {next ? <FlapTime value={clockAt(next.opens)} /> : <b>—</b>}
                 <span>{next ? `next opens · ${next.num}` : "nothing left to open"}</span>
               </div>
             </div>
+            </div>
 
+            <div className="head-b">
             <div className="ctl">
               <div className="datebox">
                 <button type="button" aria-label="Previous day" onClick={() => setTravelDay((d) => addDays(d, -1))}>‹</button>
@@ -253,20 +292,99 @@ function Explorer({ data }: { data: Dataset }) {
             <p className="rulenote">{RULES[rule].note}</p>
 
             <div className="filters">
-              <input id="train-filter" type="search" placeholder="Filter by train number or name" aria-label="Filter trains" value={query} onChange={(e) => setQuery(e.target.value)} />
-              <label className="pill"><input type="checkbox" checked={reservedOnly} onChange={(e) => setReservedOnly(e.target.checked)} />Reserved only</label>
-              <label className="pill"><input type="checkbox" checked={runningOnly} onChange={(e) => setRunningOnly(e.target.checked)} />Runs this date</label>
+              <input id="train-filter" type="search" placeholder="Train number or name" aria-label="Filter trains" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <button type="button" className={`fbtn${filtersOpen ? " on" : ""}`} aria-expanded={filtersOpen} aria-controls="filter-drawer" onClick={() => setFiltersOpen((o) => !o)}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+                Filters{nFilters > 0 && <b>{nFilters}</b>}
+              </button>
+              <div className="seg seg-sm" role="group" aria-label="Sort trains">
+                <button type="button" aria-pressed={sort === "dep"} onClick={() => setSort("dep")}>By departure</button>
+                <button type="button" aria-pressed={sort === "opens"} onClick={() => setSort("opens")}>By booking</button>
+              </div>
+            </div>
+
+            {filtersOpen && (
+              <div className="drawer" id="filter-drawer">
+                <div className="frow">
+                  <span className="flabel">Booking</span>
+                  <div className="chips">
+                    {([["all", "All"], ["upcoming", "Not departed"], ["soon", "Opening soon"], ["open", "Open now"]] as [StatusFilter, string][]).map(([v, l]) => (
+                      <button key={v} type="button" className="chip-f" aria-pressed={bf.status === v} onClick={() => setBf((f) => ({ ...f, status: v }))}>{l}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="frow">
+                  <span className="flabel">Departs</span>
+                  <div className="chips">
+                    {DAYPARTS.map((p) => (
+                      <button key={p.id} type="button" className="chip-f" aria-pressed={bf.dayparts.includes(p.id)} title={p.range}
+                        onClick={() => setBf((f) => ({ ...f, dayparts: toggleIn<Daypart>(f.dayparts, p.id) }))}>{p.label}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="frow">
+                  <span className="flabel">Type</span>
+                  <div className="chips">
+                    {kindsHere.map((k) => (
+                      <button key={k} type="button" className="chip-f" aria-pressed={bf.kinds.includes(k)}
+                        onClick={() => setBf((f) => ({ ...f, kinds: toggleIn<Kind>(f.kinds, k) }))}>{k}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="frow">
+                  <label className="flabel" htmlFor="going-to">Going to</label>
+                  <select id="going-to" className="fselect" value={bf.to} onChange={(e) => setBf((f) => ({ ...f, to: e.target.value }))}>
+                    <option value="">Any station</option>
+                    {destinations.map((d) => <option key={d.code} value={d.code}>{d.name} ({d.code}) · {d.n}</option>)}
+                  </select>
+                </div>
+                <div className="frow">
+                  <span className="flabel">Show</span>
+                  <div className="chips">
+                    <label className="pill"><input type="checkbox" checked={reservedOnly} onChange={(e) => setReservedOnly(e.target.checked)} />Reserved only</label>
+                    <label className="pill"><input type="checkbox" checked={runningOnly} onChange={(e) => setRunningOnly(e.target.checked)} />Runs this date</label>
+                  </div>
+                </div>
+                <div className="drawer-foot">
+                  <span>{rows.length} of {allRows.length} trains match</span>
+                  <button type="button" className="linkbtn" disabled={!nFilters} onClick={() => setBf(NO_FILTERS)}>Clear filters</button>
+                </div>
+              </div>
+            )}
+
+            {!filtersOpen && nFilters > 0 && (
+              <div className="active-f" aria-label="Active filters">
+                {bf.status !== "all" && <button type="button" onClick={() => setBf((f) => ({ ...f, status: "all" }))}>{{ upcoming: "Not departed", soon: "Opening soon", open: "Open now", all: "" }[bf.status]} ×</button>}
+                {bf.dayparts.map((p) => <button key={p} type="button" onClick={() => setBf((f) => ({ ...f, dayparts: f.dayparts.filter((x) => x !== p) }))}>{DAYPARTS.find((x) => x.id === p)!.label} ×</button>)}
+                {bf.kinds.map((k) => <button key={k} type="button" onClick={() => setBf((f) => ({ ...f, kinds: f.kinds.filter((x) => x !== k) }))}>{k} ×</button>)}
+                {bf.to && <button type="button" onClick={() => setBf((f) => ({ ...f, to: "" }))}>To {shortName(stationName(bf.to))} ×</button>}
+              </div>
+            )}
             </div>
           </div>
 
           <div className="list" ref={listRef}>
-            <p className="count">{rows.length} train{rows.length === 1 ? "" : "s"} leaving {shortName(sel.name)} on {dayLabel(travelDay)} · times in IST{firstUpcoming != null && rows[0]?.ti !== firstUpcoming ? " · scrolled to the next departure" : ""}</p>
+            <p className="count">
+              {rows.length === allRows.length ? rows.length : `${rows.length} of ${allRows.length}`} train{allRows.length === 1 ? "" : "s"} leaving {shortName(sel.name)} on {dayLabel(travelDay)} · times in IST
+            </p>
             {rows.length === 0 ? (
-              <div className="empty">No trains match these filters.<br />Turn off “Reserved only”, or try another date.</div>
+              <div className="empty">No trains match these filters.<br />{nFilters ? <button type="button" className="linkbtn" onClick={() => setBf(NO_FILTERS)}>Clear filters</button> : "Turn off “Reserved only”, or try another date."}</div>
             ) : (
-              rows.map((d) => (
-                <TrainCard key={d.ti} d={d} here={sel} travelDay={travelDay} now={now} open={openTi === d.ti}
-                  stops={trainStops[d.ti]} stationName={stationName} onToggle={toggle} onHover={hover} />
+              secs.map((sec) => (
+                <section key={sec.id} className="sec" aria-label={`${sec.title}, ${sec.rows.length} trains`}>
+                  <h3 className="sec-h"><span>{sec.title}</span><small>{sec.sub}</small><b>{sec.rows.length}</b></h3>
+                  <div className="sec-grid">
+                    {sec.rows.map((d) => (
+                      <Fragment key={d.ti}>
+                        {d.ti === firstUpcoming && <div className="now-line" role="separator"><span>Now · {clockAt(now)}</span></div>}
+                        <div className="sec-item">
+                          <TrainCard d={d} here={sel} travelDay={travelDay} now={now} open={openTi === d.ti}
+                            stops={trainStops[d.ti]} stationName={stationName} onToggle={toggle} onHover={hover} />
+                        </div>
+                      </Fragment>
+                    ))}
+                  </div>
+                </section>
               ))
             )}
             <footer className="foot">

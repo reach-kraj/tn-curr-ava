@@ -15,4 +15,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Booking maths lives in `src/lib/booking.ts` (IST-based, pure) with tests in `booking.test.ts`.
 - The map (`src/components/WorldMap.tsx`) is MapLibre GL; it restyles the OpenFreeMap `liberty` style at runtime and falls back to our own outline if tiles fail. `Clouds.tsx` is a canvas overlay tied to map coordinates.
 - Reminder links/`.ics` generation live in `src/lib/reminders.ts` (tested).
+- Board filters, sorting and time-of-day/status sections live in `src/lib/filters.ts` (tested).
 - Run `bun run check` before committing.
