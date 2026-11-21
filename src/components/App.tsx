@@ -6,6 +6,7 @@ import StationSearch, { type TrainHit } from "./StationSearch";
 import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
+import AdvancePlanner from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
   RULES, addDays, clock, clockAt, dayLabel, departures, duration, shortName, status, toStations, todayIst, type Rule,
@@ -105,6 +106,8 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const [bf, setBf] = useState<BoardFilters>(NO_FILTERS);
   const [sort, setSort] = useState<SortBy>("dep");
   const [optionsOpen, setOptionsOpen] = useState(false);
+  const [tab, setTab] = useState<"now" | "advance">("now");
+  const [planTi, setPlanTi] = useState<number | null>(null);
   const [panelFull, setPanelFull] = useState(false);
 
   useEffect(() => {
@@ -160,7 +163,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const nFilters = activeCount(bf);
   const nOpt = nFilters + (query.trim() ? 1 : 0);
   const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
-  const routeTi = hoverTi ?? openTi;
+  const routeTi = tab === "advance" ? planTi : hoverTi ?? openTi;
   const route = useMemo(() => (routeTi == null ? null : trainStops[routeTi].map((x) => x.station)), [routeTi, trainStops]);
   const showTrain = (ti: number) => {
     setOpenTi(ti);
@@ -308,7 +311,18 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
               <h2>{shortName(sel.name)}</h2>
             </div>
 
-            {next ? (
+            <div className="tabs" role="tablist" aria-label="What to show">
+              <button type="button" role="tab" id="tab-now" aria-selected={tab === "now"} aria-controls="panel-now" tabIndex={tab === "now" ? 0 : -1}
+                onClick={() => setTab("now")} onKeyDown={(e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { setTab("advance"); document.getElementById("tab-advance")?.focus(); } }}>
+                Current availability
+              </button>
+              <button type="button" role="tab" id="tab-advance" aria-selected={tab === "advance"} aria-controls="panel-advance" tabIndex={tab === "advance" ? 0 : -1}
+                onClick={() => setTab("advance")} onKeyDown={(e) => { if (e.key === "ArrowRight" || e.key === "ArrowLeft") { setTab("now"); document.getElementById("tab-now")?.focus(); } }}>
+                Advance booking &amp; festivals
+              </button>
+            </div>
+
+            {tab === "now" && (next ? (
               <button type="button" className="next-up" onClick={() => showTrain(next.ti)}
                 aria-label={`Next to open: ${next.num} ${next.name}, ${stationName(next.orig)} to ${stationName(next.dest)}. Current availability opens at ${clockAt(next.opens)}, in ${duration(next.opens - now)}. Show details.`}>
                 <span className="next-k">Next to open<small>in {duration(next.opens - now)}</small></span>
@@ -321,10 +335,10 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
               </button>
             ) : (
               <p className="next-none">No more trains open for current availability on this date.</p>
-            )}
+            ))}
             </div>
 
-            <div className="head-b">
+            {tab === "now" && <div className="head-b">
             <div className="ctl-row">
               <div className="datebox">
                 <button type="button" aria-label="Previous day" onClick={() => setTravelDay((d) => addDays(d, -1))}>‹</button>
@@ -422,10 +436,15 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 {bf.to && <button type="button" onClick={() => setBf((f) => ({ ...f, to: "" }))}>To {shortName(stationName(bf.to))} ×</button>}
               </div>
             )}
-            </div>
+            </div>}
           </div>
 
-          <div className="list" ref={listRef}>
+          {tab === "advance" ? (
+            <div className="list" key="panel-advance" id="panel-advance" role="tabpanel" aria-labelledby="tab-advance">
+              <AdvancePlanner data={data} sel={sel} now={now} stationName={stationName} onRoute={setPlanTi} />
+            </div>
+          ) : (
+          <div className="list" key="panel-now" ref={listRef} id="panel-now" role="tabpanel" aria-labelledby="tab-now">
             <p className="count">
               {rows.length === allRows.length ? `${rows.length} trains` : `${rows.length} of ${allRows.length} trains`} · {dayLabel(travelDay)} · times in IST · tap a train for details
             </p>
@@ -454,6 +473,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
               Scheduled times from the free, unofficial <a href="https://github.com/Neo2308/indianrailways-gtfs" target="_blank" rel="noreferrer">Indian Railways GTFS feed</a> (version {data.feed}). Not live running status. Confirm on IRCTC before you travel. EMU, MEMU, DEMU and passenger trains are unreserved and hidden by “Reserved only”. Map © OpenStreetMap contributors, OpenFreeMap; terrain © Mapzen.
             </footer>
           </div>
+          )}
         </div>
       </aside>
     </div>

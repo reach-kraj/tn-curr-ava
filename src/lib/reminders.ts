@@ -87,3 +87,47 @@ export function icsFile(r: ReminderInput, now = Date.now()): string {
 const d2 = (r: ReminderInput) => `Current availability for ${r.d.num}`;
 
 export const icsFileName = (r: ReminderInput) => `current-availability-${r.d.num}-${istDay(r.d.opens)}.ics`;
+
+/* ---------- generic events (used by the advance-booking planner) ---------- */
+export interface EventInput { uid: string; title: string; body: string; start: number; location?: string; alarm: string }
+
+export function eventGoogleUrl(e: EventInput): string {
+  const p = new URLSearchParams({
+    action: "TEMPLATE", text: e.title,
+    dates: `${icsStamp(e.start)}/${icsStamp(e.start + EVENT_MIN * 60_000)}`,
+    details: e.body, ctz: "Asia/Kolkata",
+  });
+  if (e.location) p.set("location", e.location);
+  return `https://calendar.google.com/calendar/render?${p.toString()}`;
+}
+
+export function eventIcs(e: EventInput, now = Date.now()): string {
+  const alarm = (trigger: string, what: string) => ["BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${esc(what)}`, `TRIGGER:${trigger}`, "END:VALARM"];
+  return [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//TN Current Availability//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${e.uid}@tn-curr-ava`,
+    `DTSTAMP:${icsStamp(now)}`,
+    `DTSTART:${icsStamp(e.start)}`,
+    `DTEND:${icsStamp(e.start + EVENT_MIN * 60_000)}`,
+    `SUMMARY:${esc(e.title)}`,
+    `DESCRIPTION:${esc(e.body)}`,
+    ...(e.location ? [`LOCATION:${esc(e.location)}`] : []),
+    `URL:${IRCTC}`,
+    ...alarm("-PT10M", `${e.alarm} in 10 minutes`),
+    ...alarm("PT0M", `${e.alarm} now`),
+    "END:VEVENT", "END:VCALENDAR",
+  ].map(fold).join("\r\n") + "\r\n";
+}
+
+/** Save a calendar file (opens in the phone's calendar app). */
+export function downloadIcs(ics: string, name: string) {
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+}

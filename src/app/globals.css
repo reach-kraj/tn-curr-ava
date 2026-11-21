@@ -578,3 +578,77 @@ a { color: var(--accent); }
 .sugg-train > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sugg-train small { font-size: 12px; color: var(--muted); }
 .sugg-num { font-family: var(--font-mono), monospace; color: var(--accent); }
+
+/* ================= tabs ================= */
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin: -2px 0 0; }
+.tabs [role="tab"] {
+  position: relative; flex: 1; border: 0; background: none; padding: 9px 6px 10px; cursor: pointer;
+  font-weight: 700; font-size: 13px; color: var(--muted); border-radius: 8px 8px 0 0;
+}
+.tabs [role="tab"]:hover { color: var(--ink); background: var(--line-2); }
+.tabs [role="tab"][aria-selected="true"] { color: var(--ink); }
+.tabs [role="tab"][aria-selected="true"]::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--board-ink); box-shadow: inset 0 -1px 0 var(--board); }
+.tabs [role="tab"]:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.panel.full .tabs { grid-column: 1; }
+
+/* ================= advance booking planner ================= */
+.adv { display: flex; flex-direction: column; gap: 12px; padding: 12px 0 4px; }
+.adv-window { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; background: var(--surface); border: 1px solid var(--card-edge); border-radius: 12px; padding: 10px 12px; }
+.planner { display: flex; flex-direction: column; gap: 12px; background: var(--surface); border: 1px solid var(--card-edge); border-radius: 14px; padding: 14px; }
+.planner h3 { margin: 0; font-family: var(--font-display), sans-serif; font-size: 15px; font-weight: 800; }
+.planner-form { display: grid; grid-template-columns: minmax(0, 160px) minmax(0, 1fr); gap: 10px; }
+.planner-form label { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.planner-form label > span { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.planner-form input, .planner-form select { height: 40px; min-width: 0; width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 0 10px; background: var(--surface); font: inherit; color: var(--ink); }
+.planner-form input:focus, .planner-form select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.planner-result { display: flex; align-items: center; gap: 14px; padding: 12px; border-radius: 12px; background: #f6f8fc; border: 1px solid #e6ebf2; scroll-margin-top: 12px; }
+.pr-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pr-k { font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.pr-date { font-family: var(--font-display), sans-serif; font-size: 19px; font-weight: 800; }
+.pr-time { font-family: var(--font-mono), monospace; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+.pr-state { font-size: 12.5px; font-weight: 700; }
+.pr-state.open { color: var(--open); } .pr-state.soon { color: var(--soon); } .pr-state.gone { color: var(--muted); }
+.pr-note { margin: 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.pr-facts { margin: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12.5px; }
+.pr-facts div { display: flex; gap: 6px; }
+.pr-facts dt { color: var(--muted); }
+.pr-facts dd { margin: 0; font-weight: 700; font-family: var(--font-mono), monospace; font-size: 12px; }
+
+/* calendar page tile */
+.dtile { flex: none; display: grid; grid-template-rows: auto 1fr auto; width: 48px; text-align: center; border-radius: 10px; overflow: hidden; background: var(--surface); border: 1px solid var(--card-edge); box-shadow: 0 2px 6px rgb(15 26 42 / 0.08); }
+.dtile-m { background: var(--board); color: var(--board-ink); font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 0; border-bottom: 1.5px solid var(--board-ink); }
+.dtile-d { font-family: var(--font-display), sans-serif; font-size: 20px; font-weight: 800; line-height: 1.25; }
+.dtile-w { font-size: 10px; color: var(--muted); padding-bottom: 3px; }
+.dtile.big { width: 66px; }
+.dtile.big .dtile-d { font-size: 28px; }
+
+/* festivals */
+.fest .sec-h { margin-bottom: 0; }
+.fest-list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--card-edge); border-top: 0; border-radius: 0 0 14px 14px; overflow: hidden; }
+.fest-row { display: flex; gap: 12px; padding: 12px 14px; }
+.fest-row + .fest-row { border-top: 1px solid var(--line-2); }
+.fest-row.on { background: #f6f8fd; }
+.fest-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.fest-main > b { font-size: 14px; font-weight: 700; }
+.fest-span { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12.5px; color: var(--ink-2); }
+.fest-long { font-style: normal; font-size: 11px; font-weight: 700; color: var(--board-ink); background: #fff3b8; border: 1px solid #f0d34a; border-radius: 999px; padding: 0 7px; }
+.fest-in { font-size: 11.5px; color: var(--muted); }
+.fest-extra { font-size: 12px; color: var(--soon); font-weight: 600; }
+.fest-trips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.trip { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; font-size: 12.5px; color: var(--ink); }
+.trip:hover { border-color: var(--accent); background: var(--accent-soft); }
+.trip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.trip-k { font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.trip-s { font-size: 11.5px; font-weight: 700; }
+.trip-s.open { color: var(--open); } .trip-s.soon { color: var(--soon); } .trip-s.gone { color: var(--muted); }
+.fest-src { margin: 8px 2px 0; font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+.panel.full .adv { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); align-items: start; gap: 16px 24px; }
+.panel.full .adv-window { grid-column: 1 / -1; }
+
+@media (max-width: 900px) {
+  .planner-form { grid-template-columns: 1fr; }
+  .tabs [role="tab"] { font-size: 12.5px; min-height: 44px; }
+}
+.fest-trips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.trip { flex-direction: column; align-items: flex-start; gap: 1px; padding: 6px 10px; text-align: left; }
+.trip-top { display: inline-flex; align-items: baseline; gap: 6px; font-weight: 600; }

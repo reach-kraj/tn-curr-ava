@@ -11,6 +11,7 @@ Opens on Tambaram (TBM) by default. Example: 16103 Tambaram → Rameswaram leave
 - MapLibre GL 3D map: OpenFreeMap vector tiles (OpenStreetMap), AWS Open Data terrain, 3D buildings, sky, animated clouds
 - All booking maths runs in the browser, in IST
 - Reminders: Google Calendar link, `.ics` file with alarms (10 min before + at opening), share sheet
+- **Advance booking & festivals** tab: when booking opens (60 days before the source-station journey date, 8:00 AM IST; Tatkal the day before), plus Tamil Nadu holidays (G.O.(Ms.) No.613, 06.10.2026) grouped into long weekends with go/return booking dates and reminders
 - **Sync** button: downloads the latest GTFS feed in the browser (web worker), rebuilds the Tamil Nadu timetable if newer and keeps it on the device
 - Hosted on Cloudflare Workers static assets (`wrangler.jsonc`)
 

@@ -35,3 +35,14 @@ test("ics has two alarms, CRLF lines and none over 75 octets", () => {
   expect(lines.every((l) => new TextEncoder().encode(l).length <= 75)).toBe(true);
   expect(ics.includes("\n") && !/[^\r]\n/.test(ics)).toBe(true);
 });
+
+test("generic advance-booking event: Google link and .ics", async () => {
+  const { eventGoogleUrl, eventIcs } = await import("./reminders");
+  const { advanceOpens } = await import("./advance");
+  const e = { uid: "arp-16103-2027-01-14", title: "Advance booking opens · 16103", body: "Journey 14 Jan 2027", start: advanceOpens("2027-01-14"), alarm: "Advance booking for 16103 opens" };
+  // 8:00 AM IST on 15 Nov 2026 = 02:30 UTC
+  expect(new URL(eventGoogleUrl(e)).searchParams.get("dates")).toBe("20261115T023000Z/20261115T024500Z");
+  const ics = eventIcs(e, Date.UTC(2026, 10, 21));
+  expect(ics).toContain("DTSTART:20261115T023000Z");
+  expect(ics.match(/BEGIN:VALARM/g)).toHaveLength(2);
+});
