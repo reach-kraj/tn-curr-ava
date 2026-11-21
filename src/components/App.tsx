@@ -263,18 +263,28 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
     setTab("advance");
     requestAnimationFrame(() => document.getElementById("tabs")?.scrollIntoView({ block: "start", behavior: "smooth" }));
   };
+  // after switching, show the new tab from its top if we were scrolled past it
+  const goTab = (t: Tab) => {
+    setTab(t);
+    requestAnimationFrame(() => {
+      const panel = document.getElementById(`panel-${t}`);
+      const tabs = document.getElementById("tabs");
+      if (!panel || !tabs) return;
+      if (panel.getBoundingClientRect().top < tabs.getBoundingClientRect().bottom) panel.scrollIntoView({ block: "start" });
+    });
+  };
   const onTabKey = (e: React.KeyboardEvent, i: number) => {
     const n = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
     if (!n && e.key !== "Home" && e.key !== "End") return;
     e.preventDefault();
     const j = e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : (i + n + TABS.length) % TABS.length;
-    setTab(TABS[j].id);
+    goTab(TABS[j].id);
     document.getElementById(`tab-${TABS[j].id}`)?.focus();
   };
   const weekendOpen = nextWeekend ? now >= advanceOpens(nextWeekend.go) : false;
 
   return (
-    <div className="app">
+    <div className={`app tab-${tab}`}>
       <a className="skip" href="#board">Skip to trains</a>
 
       <header className="topbar">
@@ -397,7 +407,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
           <div className="tabs" id="tabs" role="tablist" aria-label="What to show">
             {TABS.map((t, i) => (
               <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-label={t.label} aria-selected={tab === t.id} aria-controls={`panel-${t.id}`}
-                tabIndex={tab === t.id ? 0 : -1} onClick={() => setTab(t.id)} onKeyDown={(e) => onTabKey(e, i)}>
+                tabIndex={tab === t.id ? 0 : -1} onClick={() => goTab(t.id)} onKeyDown={(e) => onTabKey(e, i)}>
                 <span className="tab-long">{t.label}</span><span className="tab-short" aria-hidden="true">{t.short}</span>
               </button>
             ))}

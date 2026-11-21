@@ -838,3 +838,50 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 .next-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
 .next-remind { display: flex; }
 .lw-row > .rm, .fest-main > .rm { margin-top: 0.3rem; align-self: flex-start; }
+
+/* ================= phones: tabs right under the journey, pinned while scrolling ================= */
+@media (max-width: 760px) {
+  :root { --mtop: 6.9rem; }               /* height of the two-row top bar on phones */
+  .layout { display: flex; flex-direction: column; gap: 0.75rem; padding-top: 0.75rem; }
+  .side, .content { display: contents; }
+  .content > .tabs {
+    order: 1; position: sticky; top: var(--mtop); z-index: 15;
+    margin: 0 -1rem; padding: 0.45rem 1rem; border-radius: 0;
+    background: rgb(244 246 251 / 0.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 6px 12px -10px rgb(16 24 40 / 0.35);
+  }
+  .content > .tabs [role="tab"] { background: transparent; }
+  .content > .tabs [role="tab"][aria-selected="true"] { background: var(--surface); }
+  .side > .nameboard { order: 2; margin-top: 1rem; }
+  .side > .counts { order: 3; }
+  .side > .next-wrap, .side > .side-note { order: 4; }
+  .side > .teaser { order: 5; }
+  .content > [role="tabpanel"] { order: 6; }
+  /* the summary is about current availability; other tabs only need the station */
+  .app:not(.tab-now) .side > :not(.nameboard) { display: none; }
+  /* section headers stick below the pinned tabs */
+  .sec-h { top: calc(var(--mtop) + 3.55rem); }
+  .card { scroll-margin-top: calc(var(--mtop) + 7rem); }
+  #board, .tabs { scroll-margin-top: var(--mtop); }
+}
+@media (max-width: 760px) {
+  .layout { align-items: stretch; }
+  /* two-row top bar: brand · Book · Sync (icon only), then search */
+  .topbar-in { column-gap: 0.5rem; }
+  .topbar-book { margin-left: auto; }
+  .topbar-sync { margin-left: 0; }
+  .topbar-sync .sync-btn { width: 2.25rem; padding: 0; justify-content: center; font-size: 0; gap: 0; }
+  .topbar-sync .sync-btn svg { width: 16px; height: 16px; }
+  .topbar-sync .sync-label:empty, .topbar-sync .sync-label:has(.sync-idle) { display: none; }
+}
+@media (max-width: 760px) {
+  /* row 1: brand · Book   row 2: search · Sync */
+  .topbar-in { flex-wrap: wrap; row-gap: 0.45rem; padding-block: 0.45rem; }
+  .brand { order: 1; margin-right: auto; }
+  .topbar-book { order: 2; margin-left: 0; }
+  .topbar-search { order: 3; flex: 1 1 calc(100% - 3rem); min-width: 0; }
+  .topbar-sync { order: 4; margin-left: 0; }
+}
+@media (max-width: 760px) { :root { --mtop: 6.45rem; } }  /* matches the two-row top bar (≈103px) */
+[role="tabpanel"] { scroll-margin-top: 4.5rem; }
+@media (max-width: 760px) { [role="tabpanel"] { scroll-margin-top: calc(var(--mtop) + 4rem); } }
