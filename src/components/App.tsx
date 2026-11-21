@@ -71,7 +71,7 @@ function Skeleton() {
       <p className="sr-only" role="status">Loading the Tamil Nadu timetable…</p>
       <header className="topbar">
         <div className="wrap topbar-in">
-          <span className="brand"><TrainLogo />Bogiey</span>
+          <span className="brand"><TrainLogo /><span className="brand-text"><b>Bogiey</b><small>Train &amp; booking times</small></span></span>
           <span className="sk sk-search" />
           <span className="sk sk-pill" />
         </div>
@@ -329,7 +329,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       <header className="topbar">
         <div className="wrap topbar-in">
           <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); }}>
-            <TrainLogo />Bogiey
+            <TrainLogo /><span className="brand-text"><b>Bogiey</b><small>Train &amp; booking times</small></span>
           </a>
           <div className="topbar-search">
             <StationSearch stations={stations} trains={trainHits} onPick={selectStation} onPickTrain={pickTrain} />
