@@ -1307,17 +1307,17 @@ button, a, .pill, summary { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 760px) { .picker .sugg { right: 0; width: auto; max-width: none; } }
 
 /* ================= texture: fine paper grain + soft light, painted once on a fixed layer ================= */
-body { background-color: #f1f4f9; }
+body { background-color: #e7ebf2; }
 body::before {
   content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .07 0 0 0 0 .1 0 0 0 0 .16 0 0 0 .05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
     radial-gradient(60rem 28rem at 8% -6%, rgb(255 211 26 / 0.13), transparent 70%),
     radial-gradient(55rem 30rem at 96% 2%, rgb(37 99 235 / 0.09), transparent 70%),
-    linear-gradient(180deg, #eef2fa 0%, #f1f4f9 40%, #f3f5f9 100%);
+    linear-gradient(180deg, #e3e9f4 0%, #e7ebf2 40%, #e9edf3 100%);
 }
 /* let the texture show through the journey band */
-.journey-bar { background: linear-gradient(180deg, rgb(228 235 250 / 0.75) 0%, rgb(236 241 250 / 0.35) 65%, transparent 100%); }
+.journey-bar { background: linear-gradient(180deg, rgb(218 227 245 / 0.75) 0%, rgb(226 233 245 / 0.35) 65%, transparent 100%); }
 
 /* ================= cards: crisper edges, layered depth, a light top highlight ================= */
 :root {
