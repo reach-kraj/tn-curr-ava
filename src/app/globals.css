@@ -573,3 +573,57 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
   .jb-date-row input { width: 100%; min-width: 0; padding-inline: 0.5rem; }
   .chip-d { padding-inline: 0.75rem; }
 }
+
+/* ================= colour system =================
+   Theme  : ink + platform yellow → identity, "you are here", selection, days off
+   Accent : blue → actions only (primary button, links, focus, the Now marker)
+   Status : green open · amber opening soon · grey departed — never decorative
+   Neutral: everything else */
+:root { --hl: #fff8d6; --hl-edge: #f2cf3a; --neutral-hover: #f2f4f8; }
+
+/* selected toggles share one treatment: dark fill */
+.chip-f[aria-pressed="true"], .seg button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; box-shadow: none; }
+.pill:has(input:checked) { background: var(--surface); border-color: var(--ink); color: var(--ink); }
+.pill input { accent-color: var(--ink); }
+
+/* blue only on actions: neutralise decorative blue */
+.sync-btn { background: var(--surface); border-color: var(--edge); color: var(--ink-2); }
+.sync-btn svg { color: var(--accent); }
+.sync-btn:hover:not(:disabled) { background: var(--neutral-hover); color: var(--ink); }
+.jump { background: var(--surface); border-color: var(--edge); color: var(--ink); }
+.jump:hover { background: var(--neutral-hover); color: var(--ink); }
+.opt-btn:hover, .opt-btn.on { border-color: var(--ink); color: var(--ink); }
+.opt-btn b { background: var(--ink); }
+.active-f button { background: var(--surface); border-color: var(--edge); color: var(--ink); }
+.active-f button:hover { border-color: var(--ink); }
+.qchip:hover, .near:hover:not(:disabled), .swap:hover:not(:disabled), .chip-d:hover, .chip-f:hover { background: var(--neutral-hover); border-color: #b9c3d1; color: var(--ink); }
+.picker-code { background: var(--line-2); color: var(--ink-2); }
+.remind { background: #f6f8fb; border: 1px solid var(--line); }
+.remind-k { color: var(--ink-2); }
+.rbtn { border-color: var(--edge); }
+.rbtn svg { color: var(--ink-2); }
+.rbtn:hover { border-color: var(--ink); color: var(--ink); }
+.days i.y { background: var(--ink); color: #fff; }
+.trip:hover { background: var(--neutral-hover); border-color: #b9c3d1; }
+.next-up:hover, .teaser:hover { border-color: #b9c3d1; }
+.next-k { color: var(--ink-2); }
+.next-k small { color: var(--soon); }
+.sugg button.on, .sugg button:hover { background: var(--neutral-hover); }
+.tabs [role="tab"][aria-selected="true"]::after { background: var(--board); }
+
+/* theme highlight: the train you opened, your stop, the plan you picked */
+.card.on { background: var(--hl); box-shadow: inset 4px 0 0 var(--hl-edge); }
+.card.on .row:hover { background: transparent; }
+.card.on .details { background: #fffdf2; border-top-color: #f3e3a0; }
+.lw-row.on, .fest-row.on { background: var(--hl); box-shadow: inset 4px 0 0 var(--hl-edge); }
+.route-stop.here { background: var(--hl); margin-inline: -0.4rem; padding-inline: 0.4rem; border-radius: 8px; }
+.tl li.is-here .tl-s { font-weight: 700; color: var(--ink); }
+
+/* status colours stay meaningful */
+.row-status.open { background: #e3f6ec; color: var(--open); }
+.row-status.soon { background: #fff1de; color: var(--soon); }
+.row-status.gone { background: transparent; color: var(--gone); padding-inline: 0; }
+.counts dd.ok { color: var(--open); }
+
+/* the one primary action keeps the accent */
+.go-btn { background: var(--accent); }
