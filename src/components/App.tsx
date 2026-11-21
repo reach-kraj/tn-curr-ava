@@ -54,7 +54,7 @@ export default function App() {
 function Skeleton() {
   return (
     <div className="skeleton" aria-busy="true" aria-label="Loading the Tamil Nadu timetable">
-      <div className="topbar"><div className="wrap topbar-in"><span className="brand"><span className="brand-mark" aria-hidden="true" />TN Current Availability</span></div></div>
+      <div className="topbar"><div className="wrap topbar-in"><span className="brand"><span className="brand-mark" aria-hidden="true" />TN Train Booking</span></div></div>
       <div className="wrap sk-body">
         <div className="sk sk-bar" />
         <div className="layout">
@@ -97,7 +97,11 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
     () => [...fromOptions, ...Object.entries(data.o).map(([code, name]) => ({ code, name, sub: "outside TN" }))],
     [fromOptions, data],
   );
-  const popular = useMemo(() => [...stations].sort((a, b) => b.n - a.n).slice(0, 6), [stations]);
+  // major long-distance stations (ranking by stop count would favour suburban EMU halts)
+  const popular = useMemo(
+    () => ["MS", "TBM", "CGL", "VM", "MAS", "TPJ", "MDU", "CBE", "SA", "KPD"].map((c) => byCode.get(c)).filter((s): s is Station => !!s),
+    [byCode],
+  );
 
   const [selCode, setSelCode] = useState("TBM");
   const [travelDay, setTravelDay] = useState(() => todayIst());
@@ -260,7 +264,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       <header className="topbar">
         <div className="wrap topbar-in">
           <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); }}>
-            <span className="brand-mark" aria-hidden="true" />TN Current Availability
+            <span className="brand-mark" aria-hidden="true" />TN Train Booking
           </a>
           <div className="topbar-search">
             <StationSearch stations={stations} trains={trainHits} onPick={selectStation} onPickTrain={pickTrain} />
@@ -306,9 +310,9 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 ))}
               </div>
             )}
-            <div className="qchips" role="group" aria-label="Busy stations">
-              <span className="qk" aria-hidden="true">Busy</span>
-              {popular.filter((s) => s.code !== sel.code).slice(0, 5).map((s) => (
+            <div className="qchips" role="group" aria-label="Major stations">
+              <span className="qk" aria-hidden="true">Major</span>
+              {popular.filter((s) => s.code !== sel.code).map((s) => (
                 <button key={s.code} type="button" className="qchip" onClick={() => selectStation(s)}>{shortName(s.name)}</button>
               ))}
             </div>

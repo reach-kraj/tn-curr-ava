@@ -1,4 +1,4 @@
-# TN Current Booking
+# TN Train Booking
 
 Pick any Tamil Nadu railway station and see every train departing it, with the exact time
 **current booking** opens — worked out from when each train leaves its *source* station.
