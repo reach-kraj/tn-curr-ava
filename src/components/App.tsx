@@ -5,6 +5,7 @@ import StationSearch, { type TrainHit } from "./StationSearch";
 import StationPicker, { type PickOption } from "./StationPicker";
 import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
+import TrainLogo from "./TrainLogo";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
@@ -54,7 +55,7 @@ export default function App() {
 function Skeleton() {
   return (
     <div className="skeleton" aria-busy="true" aria-label="Loading the Tamil Nadu timetable">
-      <div className="topbar"><div className="wrap topbar-in"><span className="brand"><span className="brand-mark" aria-hidden="true" />TN Train Booking</span></div></div>
+      <div className="topbar"><div className="wrap topbar-in"><span className="brand"><TrainLogo />TN Train Booking</span></div></div>
       <div className="wrap sk-body">
         <div className="sk sk-bar" />
         <div className="layout">
@@ -273,7 +274,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       <header className="topbar">
         <div className="wrap topbar-in">
           <a className="brand" href="#top" onClick={(e) => { e.preventDefault(); scrollTo({ top: 0, behavior: "smooth" }); }}>
-            <span className="brand-mark" aria-hidden="true" />TN Train Booking
+            <TrainLogo />TN Train Booking
           </a>
           <div className="topbar-search">
             <StationSearch stations={stations} trains={trainHits} onPick={selectStation} onPickTrain={pickTrain} />

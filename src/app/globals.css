@@ -632,3 +632,6 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 .go-btn:hover { background: #ffdc45; transform: translateY(-1px); box-shadow: 0 4px 0 var(--board-ink), 0 14px 24px rgb(17 17 17 / 0.16); }
 .go-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--board-ink); }
 .go-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+/* locomotive logo */
+.train-logo { flex: none; filter: drop-shadow(0 2px 3px rgb(17 17 17 / 0.18)); transition: transform 0.2s; }
+.brand:hover .train-logo { transform: translateY(-1px) rotate(-3deg); }
