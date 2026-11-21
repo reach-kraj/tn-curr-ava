@@ -8,6 +8,7 @@ import FlapTime from "./FlapTime";
 import TrainLogo from "./TrainLogo";
 import Footer from "./Footer";
 import Signal from "./Signal";
+import ThemedSelect from "./ThemedSelect";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
@@ -448,11 +449,13 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                     </div>
                   </div>
                   <div className="frow">
-                    <label className="flabel" htmlFor="going-to">Going to</label>
-                    <select id="going-to" className="fselect" value={bf.to} onChange={(e) => setBf((f) => ({ ...f, to: e.target.value }))}>
-                      <option value="">Any station</option>
-                      {destinations.map((d) => <option key={d.code} value={d.code}>{d.name} ({d.code}) · {d.n}</option>)}
-                    </select>
+                    <span className="flabel" id="going-to-l">Going to</span>
+                    <ThemedSelect id="going-to" labelledBy="going-to-l" value={bf.to} filterPlaceholder="Filter stations"
+                      onChange={(v) => setBf((f) => ({ ...f, to: v }))}
+                      options={[
+                        { value: "", label: "Any station" },
+                        ...destinations.map((d) => ({ value: d.code, meta: d.code, label: d.name, sub: `${d.n} train${d.n === 1 ? "" : "s"} from ${shortName(sel.name)}` })),
+                      ]} />
                   </div>
                   <div className="frow">
                     <span className="flabel">Show</span>

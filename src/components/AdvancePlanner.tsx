@@ -8,6 +8,7 @@ import { ARP_DAYS, advanceOpens, breaks, lastBookable, longWeekends, openState, 
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
 import Signal from "./Signal";
+import ThemedSelect from "./ThemedSelect";
 
 const longDay = (day: string) => { const p = istParts(istInstant(day, 0)); return `${DOW[p.dow]} ${p.d} ${MON[p.m - 1]} ${p.y}`; };
 
@@ -109,15 +110,21 @@ export default function AdvancePlanner({ data, sel, now, stationName, to, stopsO
             <span>Journey date from {shortName(sel.name)}</span>
             <input id={`${formId}-date`} type="date" value={journey} min={today} onChange={(e) => { if (e.target.value) { setJourney(e.target.value); setTi(null); } }} />
           </label>
-          <label htmlFor={`${formId}-train`}>
-            <span>Train{to ? ` to ${shortName(stationName(to))}` : ""} (optional)</span>
-            <select id={`${formId}-train`} value={ti ?? ""} onChange={(e) => setTi(e.target.value === "" ? null : Number(e.target.value))}>
-              <option value="">{trains.length ? "Any train starting that day" : to ? `No train to ${shortName(stationName(to))} that day` : "No reserved train that day"}</option>
-              {trains.map((d) => (
-                <option key={d.ti} value={d.ti}>{clock(d.dep)} · {d.num} {d.name} · {shortName(stationName(d.orig))} → {shortName(stationName(d.dest))}</option>
-              ))}
-            </select>
-          </label>
+          <div className="pf-field">
+            <span id={`${formId}-train-l`}>Train{to ? ` to ${shortName(stationName(to))}` : ""} (optional)</span>
+            <ThemedSelect
+              id={`${formId}-train`} labelledBy={`${formId}-train-l`} value={ti == null ? "" : String(ti)}
+              filterPlaceholder="Filter by number, name or station"
+              onChange={(v) => setTi(v === "" ? null : Number(v))}
+              options={[
+                { value: "", label: trains.length ? "Any train starting that day" : to ? `No train to ${shortName(stationName(to))} that day` : "No reserved train that day" },
+                ...trains.map((d) => ({
+                  value: String(d.ti), meta: clock(d.dep), label: `${d.num} ${d.name}`,
+                  sub: `${shortName(stationName(d.orig))} → ${shortName(stationName(d.dest))}`,
+                })),
+              ]}
+            />
+          </div>
         </div>
 
         <div className="planner-result" aria-live="polite">

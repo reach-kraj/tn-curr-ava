@@ -757,3 +757,31 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 .planner-form input[type="date"] { padding: 0 0.9rem; font-weight: 600; }
 /* line the fields up on their bottom edge even when a label wraps */
 .planner-form { align-items: end; }
+
+/* ================= themed select ================= */
+.pf-field { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
+.pf-field > span { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tsel { position: relative; min-width: 0; }
+.tsel-btn { display: flex; align-items: center; gap: 0.6rem; width: 100%; min-width: 0; height: 2.75rem; padding: 0 0.85rem; border: 1px solid var(--edge); border-radius: 10px; background: var(--surface); text-align: left; font-weight: 600; color: var(--ink); }
+.tsel-btn:hover { border-color: #b9c3d1; }
+.tsel.open .tsel-btn { border-color: var(--ink); box-shadow: 0 0 0 3px rgb(15 26 42 / 0.08); }
+.tsel-btn .tsel-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsel-btn .chev { color: var(--muted); }
+.tsel.open .tsel-btn .chev { transform: rotate(180deg); }
+.tsel-meta { flex: none; font-family: var(--font-mono), monospace; font-size: 0.78rem; font-weight: 700; color: var(--ink-2); background: var(--line-2); border-radius: 6px; padding: 0.1rem 0.4rem; white-space: nowrap; }
+.tsel-pop { position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% + 6px); min-width: min(26rem, 90vw); background: var(--surface); border: 1px solid var(--edge); border-radius: 14px; box-shadow: var(--shadow-lg); overflow: hidden; animation: rise 0.14s ease-out; }
+.tsel-search { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--line-2); color: var(--muted); }
+.tsel-search input { flex: 1; min-width: 0; height: 2.2rem; border: 0; outline: none; background: none; font-size: 0.92rem; color: var(--ink); }
+.tsel-list { list-style: none; margin: 0; padding: 0.3rem; max-height: min(22rem, 55vh); overflow-y: auto; overscroll-behavior: contain; }
+.tsel-list:focus { outline: none; }
+.tsel-opt { display: flex; align-items: center; gap: 0.65rem; min-height: 2.75rem; padding: 0.45rem 0.6rem; border-radius: 10px; cursor: pointer; }
+.tsel-opt.hi { background: var(--neutral-hover); }
+.tsel-opt.sel { background: var(--hl); box-shadow: inset 3px 0 0 var(--hl-edge); }
+.tsel-opt.sel.hi { background: #fff3c4; }
+.tsel-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.tsel-label { font-weight: 700; font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsel-sub { font-size: 0.8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsel-tick { flex: none; color: var(--ink); }
+.tsel-empty { padding: 0.8rem; color: var(--muted); font-size: 0.88rem; }
+.tsel-list::-webkit-scrollbar { width: 8px; } .tsel-list::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 8px; }
+@media (max-width: 760px) { .tsel-pop { min-width: 0; } }
