@@ -7,11 +7,12 @@ import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
 import TrainLogo from "./TrainLogo";
 import Footer from "./Footer";
+import Signal from "./Signal";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
-  RULES, addDays, clock, clockAt, dayLabel, departures, duration, shortName, status, toStations, todayIst, type Rule,
+  RULES, addDays, clock, clockAt, dayLabel, dayWord, departures, duration, shortName, status, toStations, todayIst, type Rule,
 } from "@/lib/booking";
 import {
   DAYPARTS, KINDS, NO_FILTERS, activeCount, applyBoardFilters, onwardCodes, sections, trainKind,
@@ -351,7 +352,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
           {next ? (
             <button type="button" className="next-up" onClick={() => { if (next.day !== travelDay) setTravelDay(next.day); showTrain(next.d.ti); }}
               aria-label={`Next to open${next.day !== travelDay ? ` (tomorrow's train)` : ""}: ${next.d.num} ${next.d.name}, ${stationName(next.d.orig)} to ${stationName(next.d.dest)}. Current availability opens at ${clockAt(next.d.opens)}, in ${duration(next.d.opens - now)}. Show this train.`}>
-              <span className="next-k">Next to open <small>in {duration(next.d.opens - now)}</small></span>
+              <span className="next-k"><span className="next-k-row"><Signal aspect="soon" />Next to open</span><small>{dayWord(next.d.opens, now)} · in {duration(next.d.opens - now)}</small></span>
               <FlapTime value={clockAt(next.d.opens)} />
               <span className="next-train">
                 <b><span>{next.d.name}</span><span className="tnum">{next.d.num}</span></b>
@@ -406,7 +407,14 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 </div>
                 {firstUpcoming != null && <button type="button" className="jump" onClick={jumpToNow}>Jump to now</button>}
               </div>
-              <p className="rulenote">{RULES[rule].note}</p>
+              <div className="rulerow">
+                <p className="rulenote">{RULES[rule].note}</p>
+                <p className="sig-key" aria-label="Signal key: green open now, yellow opens later, red departed">
+                  <span><Signal aspect="open" />Open now</span>
+                  <span><Signal aspect="soon" />Opens later</span>
+                  <span><Signal aspect="gone" />Departed</span>
+                </p>
+              </div>
 
               {optionsOpen && (
                 <div className="drawer" id="board-options" role="region" aria-label="Filters">

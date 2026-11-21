@@ -2,10 +2,11 @@
 
 import { memo, useState } from "react";
 import FlapTime from "./FlapTime";
+import Signal from "./Signal";
 import { googleCalendarUrl, icsFile, icsFileName, reminderText, type ReminderInput } from "@/lib/reminders";
 import type { Station, TrainStop } from "@/lib/types";
 import {
-  clock, clockAt, dayLabel, duration, istDay, relDay, shortName, status, type Departure,
+  clock, clockAt, dayDiff, dayLabel, dayWord, duration, istDay, relDay, shortName, status, type Departure,
 } from "@/lib/booking";
 
 interface Props {
@@ -89,11 +90,15 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
           </span>
         </span>
         <span className="row-open">
-          <span className="sr-only">Current availability opens at</span>
-          <FlapTime value={clockAt(d.opens)} size="sm" />
+          <span className="sr-only">Current availability opens {dayWord(d.opens, now)} at {clockAt(d.opens)}.</span>
+          <span className="row-when" aria-hidden="true">
+            <span className={`row-date${dayDiff(istDay(now), istDay(d.opens)) === 0 ? " is-today" : ""}`}>{dayWord(d.opens, now)}</span>
+            <FlapTime value={clockAt(d.opens)} size="sm" />
+          </span>
           <small className={`row-status ${st.kind}`} title={chipLong}>
-            <span className="sr-only">{chipLong}{opensTag ? `, opens ${opensTag}` : ""}</span>
-            <span aria-hidden="true">{chipText}{opensTag && st.kind !== "gone" ? <span className="row-day"> · {opensTag}</span> : null}</span>
+            <Signal aspect={st.kind} />
+            <span className="sr-only">{chipLong}</span>
+            <span aria-hidden="true">{chipText}</span>
           </small>
         </span>
         <svg className="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>

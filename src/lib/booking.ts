@@ -151,3 +151,12 @@ export const shortName = (n: string) => n.replace(/\s+JN\.?$/i, "").replace(/\s+
 export function toStations(data: Dataset): Station[] {
   return data.s.map(([code, name, lon, lat, n], i) => ({ i, code, name, lon, lat, n }));
 }
+
+/** "Today" / "Tomorrow" / "Yesterday" / "Sat 28 Nov" for an instant, relative to `now` (IST). */
+export function dayWord(ms: number, now: number): string {
+  const diff = dayDiff(istDay(now), istDay(ms));
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Tomorrow";
+  if (diff === -1) return "Yesterday";
+  return dayLabel(istDay(ms));
+}

@@ -7,6 +7,7 @@ import { DOW, MON, addDays, duration, clock, clockAt, dayDiff, dayLabel, departu
 import { ARP_DAYS, advanceOpens, breaks, lastBookable, longWeekends, openState, tatkalOpens, type Break, type LongWeekend, type OpenState } from "@/lib/advance";
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
+import Signal from "./Signal";
 
 const longDay = (day: string) => { const p = istParts(istInstant(day, 0)); return `${DOW[p.dow]} ${p.d} ${MON[p.m - 1]} ${p.y}`; };
 
@@ -125,7 +126,7 @@ export default function AdvancePlanner({ data, sel, now, stationName, to, stopsO
             <span className="pr-k">Advance booking opens</span>
             <b className="pr-date">{longDay(openDay)}</b>
             <span className="pr-time">8:00 AM IST</span>
-            <span className={`pr-state ${st.cls}`}>{st.text}</span>
+            <span className={`pr-state ${st.cls}`}><Signal aspect={st.cls as "open" | "soon" | "gone"} />{st.text}</span>
           </div>
         </div>
 
@@ -197,7 +198,7 @@ function TripButton({ kind, hint, day, now, today, onPlan }: { kind: string; hin
       aria-label={`${kind} ${hint} on ${longDay(day)}. ${st.cls === "open" ? "Booking is open" : `Booking opens ${longDay(opensOn)} at 8 AM`}. Check trains.`}>
       <span className="trip-k">{kind} <small>{hint}</small></span>
       <span className="trip-day">{dayLabel(day)}</span>
-      <span className={`trip-s ${st.cls}`}>{st.cls === "open" ? "booking open" : `books ${dayLabel(opensOn)}`}</span>
+      <span className={`trip-s ${st.cls}`}><Signal aspect={st.cls as "open" | "soon" | "gone"} />{st.cls === "open" ? "booking open" : `books ${dayLabel(opensOn)}`}</span>
     </button>
   );
 }

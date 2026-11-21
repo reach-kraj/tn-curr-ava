@@ -710,3 +710,32 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
   .foot-grid { grid-template-columns: 1fr; gap: 1.5rem; }
   .foot-train .coach:last-child { display: none; }
 }
+
+/* ================= railway signal status lights ================= */
+.signal { display: inline-flex; flex-direction: column; align-items: center; gap: 1.5px; flex: none; padding: 2px 2px; background: #1b2230; border-radius: 4px 4px 3px 3px; box-shadow: 0 1px 1px rgb(0 0 0 / 0.25); vertical-align: middle; position: relative; }
+.signal::after { content: ""; position: absolute; left: 50%; bottom: -3px; width: 2px; height: 3px; background: #1b2230; transform: translateX(-50%); }
+.signal .lamp { width: 4px; height: 4px; border-radius: 50%; background: #3a4558; }
+.signal-md .lamp { width: 6px; height: 6px; }
+.signal-md { gap: 2px; padding: 3px; }
+.aspect-open .lamp.g { background: #22c55e; box-shadow: 0 0 4px 1px rgb(34 197 94 / 0.8); }
+.aspect-soon .lamp.y { background: #fbbf24; box-shadow: 0 0 4px 1px rgb(251 191 36 / 0.85); }
+.aspect-gone .lamp.r { background: #ef4444; box-shadow: 0 0 4px 1px rgb(239 68 68 / 0.75); }
+.row-status { gap: 0.4rem; }
+.row-status.open::before { display: none; }
+.row-status .signal { margin-bottom: 2px; }
+
+/* opening date next to the time */
+.row-when { display: inline-flex; align-items: center; gap: 0.45rem; }
+.row-date { font-size: 0.8rem; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
+.row-date.is-today { color: var(--ink); }
+.next-k-row { display: inline-flex; align-items: center; gap: 0.4rem; }
+.next-k small { margin-top: 0.15rem; }
+
+/* key + rule note */
+.rulerow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 1rem; margin-top: 0.5rem; }
+.rulerow .rulenote { margin: 0; }
+.sig-key { margin: 0; display: inline-flex; flex-wrap: wrap; gap: 0.35rem 0.9rem; font-size: 0.78rem; color: var(--muted); }
+.sig-key span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.pr-state, .trip-s { display: inline-flex; align-items: center; gap: 0.4rem; }
+.trip-s .signal { transform: scale(0.85); transform-origin: left center; }
+@media (max-width: 760px) { .row-date { font-size: 0.74rem; } .row-when { flex-direction: column; align-items: flex-end; gap: 0.1rem; } }

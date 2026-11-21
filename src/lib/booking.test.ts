@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import {
-  addDays, clock, clockAt, departures, istInstant, isReserved, openInstant, relDay, runsOn, status,
+  addDays, clock, clockAt, dayWord, departures, istInstant, isReserved, openInstant, relDay, runsOn, status,
 } from "./booking";
 import type { Dataset, TrainRow } from "./types";
 
@@ -95,5 +95,15 @@ describe("departures (real data)", () => {
     expect(status(r, istInstant("2026-11-21", 7 * 60)).kind).toBe("soon");
     expect(status(r, istInstant("2026-11-21", 12 * 60)).kind).toBe("open");
     expect(status(r, istInstant("2026-11-21", 19 * 60)).kind).toBe("gone");
+  });
+});
+
+describe("dayWord", () => {
+  const now = istInstant("2026-11-21", 13 * 60);
+  test("relative words near today, otherwise the date", () => {
+    expect(dayWord(istInstant("2026-11-21", 8 * 60), now)).toBe("Today");
+    expect(dayWord(istInstant("2026-11-22", 0), now)).toBe("Tomorrow");
+    expect(dayWord(istInstant("2026-11-20", 23 * 60), now)).toBe("Yesterday");
+    expect(dayWord(istInstant("2026-11-28", 13 * 60 + 15), now)).toBe("Sat 28 Nov");
   });
 });
