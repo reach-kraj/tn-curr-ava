@@ -18,12 +18,14 @@ function Coach() {
 export default function Footer({ feed, stations }: { feed: string; stations: number }) {
   return (
     <footer className="site-foot">
-      {/* the train pulls into the last stop of the page */}
+      {/* as you scroll down, the train runs in from the right and stops at the buffer stop */}
       <div className="foot-track" aria-hidden="true">
         <div className="wrap foot-train">
           <span className="buffer-stop" />
-          <TrainLogo height={30} />
-          <Coach /><Coach />
+          <span className="foot-consist">
+            <TrainLogo height={30} />
+            <Coach /><Coach />
+          </span>
         </div>
       </div>
 
