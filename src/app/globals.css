@@ -1101,3 +1101,24 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 @media (prefers-reduced-motion: reduce) {
   .nf-smoke { opacity: 0.5 !important; transform: translate(10px, -40px) scale(2) !important; }
 }
+
+/* ================= FAQ, compact: one bar, opens into a tight list ================= */
+.faq { padding-block: 0.25rem 1.5rem; }
+.faq-wrap { background: var(--surface); border: 1px solid var(--edge); border-radius: 14px; box-shadow: var(--shadow-sm); overflow: hidden; }
+.faq-wrap > summary { display: flex; align-items: center; gap: 0.6rem; min-height: 3rem; padding: 0.5rem 1rem; cursor: pointer; list-style: none; }
+.faq-wrap > summary::-webkit-details-marker { display: none; }
+.faq-wrap > summary h2 { margin: 0; font-family: var(--font-body), sans-serif; font-size: 0.95rem; font-weight: 700; color: var(--ink); }
+.faq-ico { display: grid; place-items: center; width: 1.4rem; height: 1.4rem; border-radius: 50%; background: var(--board); border: 1.5px solid var(--board-ink); font-size: 0.78rem; font-weight: 800; color: var(--board-ink); }
+.faq-n { font-family: var(--font-mono), monospace; font-size: 0.72rem; font-weight: 700; color: var(--muted); background: var(--line-2); border-radius: 999px; padding: 0 0.45rem; }
+.faq-chev { margin-left: auto; color: var(--muted); transition: transform 0.2s; }
+.faq-wrap[open] > summary { border-bottom: 1px solid var(--line-2); }
+.faq-wrap[open] .faq-chev { transform: rotate(180deg); }
+.faq-wrap .faq-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 1.5rem; padding: 0.25rem 1rem 0.5rem; }
+.faq-wrap .faq-item { background: none; border: 0; border-bottom: 1px solid var(--line-2); border-radius: 0; box-shadow: none; animation: none; }
+.faq-wrap .faq-item summary { min-height: 2.6rem; padding: 0.45rem 0; font-size: 0.85rem; font-weight: 600; color: var(--ink-2); gap: 0.75rem; }
+.faq-wrap .faq-item summary:hover { color: var(--ink); }
+.faq-wrap .faq-item summary svg { transition: transform 0.2s; }
+.faq-wrap .faq-item[open] summary { color: var(--ink); }
+.faq-wrap .faq-item[open] summary svg { transform: rotate(45deg); }
+.faq-wrap .faq-item p { padding: 0 0 0.7rem; font-size: 0.82rem; line-height: 1.55; color: var(--ink-2); }
+@media (max-width: 760px) { .faq-wrap .faq-list { grid-template-columns: 1fr; } }
