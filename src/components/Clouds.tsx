@@ -6,34 +6,60 @@ import type { Map as MlMap } from "maplibre-gl";
 /**
  * Drifting clouds anchored to real coordinates, so they pan and tilt with the map.
  *
- * Motion that reads as natural:
- *  - a north-east monsoon breeze (towards the west) with gusts, each cloud at its own speed
- *  - a slow vertical sway, and puffs that swell and shift so outlines keep changing
- *  - altitude parallax: higher clouds slide a little more than the ground when you pan or tilt
- *  - clouds fade in and out as they cross the edges of the cloud field (no popping on wrap)
- *  - soft ground shadows offset by altitude; the whole layer clears between zoom 7 and 9.5
+ * Three kinds, so the sky reads as natural rather than uniform:
+ *  - cumulus: big, bright, billowy, with a soft blue-grey underside
+ *  - wisp:    thin, light, stretched high-altitude streaks that move faster
+ *  - storm:   darker grey rain clouds that sit lower, move slower and cast deeper shadows
+ *
+ * Motion: a gusting westward breeze, slow sway, puffs that swell and shift, altitude parallax,
+ * and fading in/out at the edges of the cloud field. The layer clears between zoom 7 and 9.5.
  */
+type Kind = "cumulus" | "wisp" | "storm";
 interface Puff { dx: number; dy: number; r: number; phase: number; rate: number }
-interface Cloud { lon: number; lat: number; km: number; speed: number; alt: number; phase: number; puffs: Puff[] }
+interface Cloud { kind: Kind; lon: number; lat: number; km: number; speed: number; alt: number; phase: number; puffs: Puff[] }
 
 const WEST = 74.6, SPAN = 9.2; // longitude band the clouds circulate through
+
+const LOOK: Record<Kind, {
+  top: [number, number, number]; mid: [number, number, number]; base: [number, number, number];
+  body: number; under: number; shadow: number; squash: number;
+}> = {
+  cumulus: { top: [255, 255, 255], mid: [246, 249, 253], base: [214, 226, 239], body: 0.9, under: 0.32, shadow: 0.09, squash: 1 },
+  wisp: { top: [255, 255, 255], mid: [250, 252, 255], base: [236, 243, 250], body: 0.42, under: 0, shadow: 0.025, squash: 0.32 },
+  storm: { top: [226, 232, 239], mid: [184, 195, 208], base: [132, 145, 161], body: 0.82, under: 0.45, shadow: 0.16, squash: 0.9 },
+};
 
 function rng(seed: number) { let s = seed; return () => ((s = (s * 16807) % 2147483647) / 2147483647); }
 
 function makeClouds(): Cloud[] {
-  const r = rng(42);
-  return Array.from({ length: 18 }, () => {
-    const puffs = Array.from({ length: 6 + Math.floor(r() * 7) }, () => ({
-      dx: (r() - 0.5) * 1.6, dy: (r() - 0.5) * 0.55, r: 0.32 + r() * 0.45, phase: r() * Math.PI * 2, rate: 0.12 + r() * 0.2,
+  const r = rng(7);
+  const plan: Kind[] = [
+    ...Array<Kind>(10).fill("cumulus"),
+    ...Array<Kind>(7).fill("wisp"),
+    ...Array<Kind>(3).fill("storm"),
+  ];
+  return plan.map((kind) => {
+    const n = kind === "wisp" ? 4 + Math.floor(r() * 3) : 7 + Math.floor(r() * 7);
+    const spread = kind === "wisp" ? 2.6 : kind === "storm" ? 1.9 : 1.6;
+    const puffs = Array.from({ length: n }, () => ({
+      dx: (r() - 0.5) * spread,
+      dy: (r() - 0.5) * (kind === "wisp" ? 0.2 : 0.55),
+      r: (kind === "storm" ? 0.38 : 0.3) + r() * 0.45,
+      phase: r() * Math.PI * 2,
+      rate: 0.1 + r() * 0.2,
     }));
+    const km = kind === "cumulus" ? 18 + r() * 40 : kind === "storm" ? 34 + r() * 30 : 20 + r() * 26;
     return {
-      lon: WEST + r() * SPAN, lat: 7.4 + r() * 7.2, km: 16 + r() * 30,
-      speed: 0.7 + r() * 0.6, alt: 0.4 + r() * 0.6, phase: r() * Math.PI * 2, puffs,
+      kind, lon: WEST + r() * SPAN, lat: 7.4 + r() * 7.2, km,
+      speed: kind === "wisp" ? 1.4 + r() * 0.5 : kind === "storm" ? 0.55 + r() * 0.25 : 0.75 + r() * 0.5,
+      alt: kind === "wisp" ? 1 : kind === "storm" ? 0.3 + r() * 0.2 : 0.45 + r() * 0.4,
+      phase: r() * Math.PI * 2, puffs,
     };
   });
 }
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const rgba = ([r, g, b]: [number, number, number], a: number) => `rgba(${r},${g},${b},${a})`;
 
 export default function Clouds({ map }: { map: MlMap | null }) {
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -41,10 +67,24 @@ export default function Clouds({ map }: { map: MlMap | null }) {
   useEffect(() => {
     if (!map || !canvas.current) return;
     const cv = canvas.current, ctx = cv.getContext("2d")!;
-    const clouds = makeClouds();
+    // draw wisps last so they sit "above" the lower clouds
+    const order: Record<Kind, number> = { storm: 0, cumulus: 1, wisp: 2 };
+    const clouds = makeClouds().sort((a, b) => order[a.kind] - order[b.kind]);
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     let raf = 0, last = 0, travelled = 0;
     const start = performance.now();
+
+    /** an ellipse-shaped radial puff */
+    const blob = (x: number, y: number, r: number, squash: number, stops: [number, string][], hx = 0, hy = 0) => {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(1, squash);
+      const g = ctx.createRadialGradient(hx * r, hy * r, r * 0.06, 0, 0, r);
+      for (const [o, c] of stops) g.addColorStop(o, c);
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    };
 
     const draw = (now: number) => {
       raf = requestAnimationFrame(draw);
@@ -73,20 +113,19 @@ export default function Clouds({ map }: { map: MlMap | null }) {
       const cx = w / 2, cy = h / 2;
 
       for (const cl of clouds) {
+        const look = LOOK[cl.kind];
         const u = ((((cl.lon - travelled * cl.speed - WEST) % SPAN) + SPAN) % SPAN) / SPAN; // 0 = west edge, 1 = east edge
         const lon = WEST + u * SPAN;
         const lat = cl.lat + 0.08 * Math.sin(t * 0.045 + cl.phase);
-        const edge = smooth(0, 0.14, u) * smooth(1, 0.86, u); // fade at both ends of the band
-        const alpha = zoomAlpha * edge;
+        const alpha = zoomAlpha * smooth(0, 0.14, u) * smooth(1, 0.86, u);
         if (alpha < 0.02) continue;
 
         const g0 = map.project([lon, lat]);
-        // parallax: clouds sit above the ground, so they spread from the screen centre and lift with tilt
-        const par = 1 + cl.alt * 0.06;
         const size = cl.km * pxPerKm;
+        const par = 1 + cl.alt * 0.06; // higher clouds slide a little more when panning
         const x0 = cx + (g0.x - cx) * par;
         const y0 = cy + (g0.y - cy) * par - cl.alt * size * 0.55 * tilt;
-        if (x0 < -size * 2 || y0 < -size * 2 || x0 > w + size * 2 || y0 > h + size * 2) continue;
+        if (x0 < -size * 3 || y0 < -size * 2 || x0 > w + size * 3 || y0 > h + size * 2) continue;
 
         const puffs = cl.puffs.map((p) => {
           const breathe = 1 + 0.07 * Math.sin(t * p.rate + p.phase);
@@ -97,23 +136,25 @@ export default function Clouds({ map }: { map: MlMap | null }) {
           };
         });
 
-        // ground shadow: further away and softer for higher clouds
-        const sx = size * (0.25 + cl.alt * 0.25), sy = size * (0.35 + cl.alt * 0.35) * (1 - 0.5 * tilt) + g0.y - y0;
+        // ground shadow, further and softer for higher clouds
+        const sx = size * (0.25 + cl.alt * 0.25), sy = size * (0.35 + cl.alt * 0.35) * (1 - 0.5 * tilt) + (g0.y - y0);
         for (const p of puffs) {
-          const x = p.x + sx, y = p.y + sy, r = p.r * 1.05;
-          const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-          g.addColorStop(0, `rgba(30,60,90,${0.085 * alpha})`);
-          g.addColorStop(1, "rgba(30,60,90,0)");
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+          blob(p.x + sx, p.y + sy, p.r * 1.05, look.squash, [[0, `rgba(25,50,80,${look.shadow * alpha})`], [1, "rgba(25,50,80,0)"]]);
         }
-        // cloud body: soft white with a sunlit top-left and a faint blue-grey base
+        // shaded underside
+        if (look.under > 0) {
+          for (const p of puffs) {
+            blob(p.x, p.y + p.r * 0.22, p.r * 0.95, look.squash, [[0, rgba(look.base, look.under * alpha)], [1, rgba(look.base, 0)]]);
+          }
+        }
+        // sunlit body (light from the top-left)
         for (const p of puffs) {
-          const g = ctx.createRadialGradient(p.x - p.r * 0.25, p.y - p.r * 0.32, p.r * 0.08, p.x, p.y, p.r);
-          g.addColorStop(0, `rgba(255,255,255,${0.88 * alpha})`);
-          g.addColorStop(0.5, `rgba(249,251,255,${0.6 * alpha})`);
-          g.addColorStop(0.82, `rgba(226,236,246,${0.22 * alpha})`);
-          g.addColorStop(1, "rgba(226,236,246,0)");
-          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+          blob(p.x, p.y, p.r, look.squash, [
+            [0, rgba(look.top, look.body * alpha)],
+            [0.5, rgba(look.mid, look.body * 0.68 * alpha)],
+            [0.82, rgba(look.base, look.body * 0.25 * alpha)],
+            [1, rgba(look.base, 0)],
+          ], -0.25, -0.32);
         }
       }
     };

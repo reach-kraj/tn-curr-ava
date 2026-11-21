@@ -99,7 +99,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const [dragPx, setDragPx] = useState<number | null>(null);
   const [bf, setBf] = useState<BoardFilters>(NO_FILTERS);
   const [sort, setSort] = useState<SortBy>("dep");
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [panelFull, setPanelFull] = useState(false);
 
   useEffect(() => {
@@ -119,6 +119,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
     if (code) setSelCode(code);
     if (byCode.has(fromHash)) setFlyKey((k) => k + 1);
     if (r && r in RULES) setRule(r as Rule);
+    if (store.get("tn.options") === "1") setOptionsOpen(true);
     const onHash = () => { const c = decodeURIComponent(location.hash.slice(1)).toUpperCase(); if (byCode.has(c)) { setSelCode(c); setFlyKey((k) => k + 1); } };
     addEventListener("hashchange", onHash);
     return () => removeEventListener("hashchange", onHash);
@@ -152,6 +153,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   }, [allRows, trainStops, stationName]);
   const kindsHere = useMemo(() => { const k = new Set(allRows.map((d) => trainKind(d.name))); return KINDS.filter((x) => k.has(x)); }, [allRows]);
   const nFilters = activeCount(bf);
+  const nOpt = nFilters + (query.trim() ? 1 : 0);
   const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const routeTi = hoverTi ?? openTi;
   const route = useMemo(() => (routeTi == null ? null : trainStops[routeTi].map((x) => x.station)), [routeTi, trainStops]);
@@ -287,35 +289,47 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
             </div>
 
             <div className="head-b">
-            <div className="ctl">
+            <div className="ctl-row">
               <div className="datebox">
                 <button type="button" aria-label="Previous day" onClick={() => setTravelDay((d) => addDays(d, -1))}>‹</button>
                 <input id="travel-day" type="date" aria-label="Travel date at this station" value={travelDay} onChange={(e) => e.target.value && setTravelDay(e.target.value)} />
                 <button type="button" aria-label="Next day" onClick={() => setTravelDay((d) => addDays(d, 1))}>›</button>
               </div>
-              <button type="button" className="btn" onClick={() => setTravelDay(todayIst())}>Today</button>
-              <div className="seg" role="group" aria-label="Booking rule">
-                {(["10", "8", "4"] as Rule[]).map((r) => (
-                  <button key={r} type="button" aria-pressed={rule === r} onClick={() => { setRule(r); store.set("tn.rule", r); }}>{RULES[r].label}</button>
-                ))}
-              </div>
-            </div>
-            <p className="rulenote">{RULES[rule].note}</p>
-
-            <div className="filters">
-              <input id="train-filter" type="search" placeholder="Train number or name" aria-label="Filter trains" value={query} onChange={(e) => setQuery(e.target.value)} />
-              <button type="button" className={`fbtn${filtersOpen ? " on" : ""}`} aria-expanded={filtersOpen} aria-controls="filter-drawer" onClick={() => setFiltersOpen((o) => !o)}>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
-                Filters{nFilters > 0 && <b>{nFilters}</b>}
+              {travelDay !== todayIst(now) && <button type="button" className="btn" onClick={() => setTravelDay(todayIst())}>Today</button>}
+              <button type="button" className={`opt-btn${optionsOpen ? " on" : ""}`} aria-expanded={optionsOpen} aria-controls="board-options"
+                onClick={() => setOptionsOpen((o) => { store.set("tn.options", o ? "0" : "1"); return !o; })}>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
+                <span>Options</span>
+                <span className="opt-sub">{RULES[rule].label}{sort === "opens" ? " · by booking" : ""}</span>
+                {nOpt > 0 && <b aria-label={`${nOpt} active`}>{nOpt}</b>}
+                <svg className="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
               </button>
-              <div className="seg seg-sm" role="group" aria-label="Sort trains">
-                <button type="button" aria-pressed={sort === "dep"} onClick={() => setSort("dep")}>By departure</button>
-                <button type="button" aria-pressed={sort === "opens"} onClick={() => setSort("opens")}>By booking</button>
-              </div>
             </div>
 
-            {filtersOpen && (
-              <div className="drawer" id="filter-drawer">
+            {optionsOpen && (
+              <div className="drawer" id="board-options" role="region" aria-label="Board options">
+                <div className="frow">
+                  <span className="flabel" id="rule-label">Rule</span>
+                  <div className="frow-col">
+                    <div className="seg" role="group" aria-labelledby="rule-label">
+                      {(["10", "8", "4"] as Rule[]).map((r) => (
+                        <button key={r} type="button" aria-pressed={rule === r} onClick={() => { setRule(r); store.set("tn.rule", r); }}>{RULES[r].label}</button>
+                      ))}
+                    </div>
+                    <p className="rulenote">{RULES[rule].note}</p>
+                  </div>
+                </div>
+                <div className="frow">
+                  <label className="flabel" htmlFor="train-filter">Train</label>
+                  <input id="train-filter" className="fsearch" type="search" placeholder="Number or name, e.g. 16103" value={query} onChange={(e) => setQuery(e.target.value)} />
+                </div>
+                <div className="frow">
+                  <span className="flabel" id="sort-label">Sort</span>
+                  <div className="seg seg-sm" role="group" aria-labelledby="sort-label">
+                    <button type="button" aria-pressed={sort === "dep"} onClick={() => setSort("dep")}>By departure</button>
+                    <button type="button" aria-pressed={sort === "opens"} onClick={() => setSort("opens")}>By booking</button>
+                  </div>
+                </div>
                 <div className="frow">
                   <span className="flabel">Booking</span>
                   <div className="chips">
@@ -358,13 +372,14 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 </div>
                 <div className="drawer-foot">
                   <span>{rows.length} of {allRows.length} trains match</span>
-                  <button type="button" className="linkbtn" disabled={!nFilters} onClick={() => setBf(NO_FILTERS)}>Clear filters</button>
+                  <button type="button" className="linkbtn" disabled={!nOpt} onClick={() => { setBf(NO_FILTERS); setQuery(""); }}>Clear filters</button>
                 </div>
               </div>
             )}
 
-            {!filtersOpen && nFilters > 0 && (
+            {!optionsOpen && nOpt > 0 && (
               <div className="active-f" aria-label="Active filters">
+                {query && <button type="button" onClick={() => setQuery("")} aria-label={`Remove filter: ${query}`}>“{query}” ×</button>}
                 {bf.status !== "all" && <button type="button" onClick={() => setBf((f) => ({ ...f, status: "all" }))}>{{ upcoming: "Not departed", soon: "Opening soon", open: "Open now", all: "" }[bf.status]} ×</button>}
                 {bf.dayparts.map((p) => <button key={p} type="button" onClick={() => setBf((f) => ({ ...f, dayparts: f.dayparts.filter((x) => x !== p) }))}>{DAYPARTS.find((x) => x.id === p)!.label} ×</button>)}
                 {bf.kinds.map((k) => <button key={k} type="button" onClick={() => setBf((f) => ({ ...f, kinds: f.kinds.filter((x) => x !== k) }))}>{k} ×</button>)}
@@ -376,10 +391,10 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
 
           <div className="list" ref={listRef}>
             <p className="count">
-              {rows.length === allRows.length ? rows.length : `${rows.length} of ${allRows.length}`} train{allRows.length === 1 ? "" : "s"} leaving {shortName(sel.name)} on {dayLabel(travelDay)} · times in IST
+              {rows.length === allRows.length ? `${rows.length} trains` : `${rows.length} of ${allRows.length} trains`} · {dayLabel(travelDay)} · times in IST · tap a train for details
             </p>
             {rows.length === 0 ? (
-              <div className="empty">No trains match these filters.<br />{nFilters ? <button type="button" className="linkbtn" onClick={() => setBf(NO_FILTERS)}>Clear filters</button> : "Turn off “Reserved only”, or try another date."}</div>
+              <div className="empty">No trains match these filters.<br />{nOpt ? <button type="button" className="linkbtn" onClick={() => { setBf(NO_FILTERS); setQuery(""); }}>Clear filters</button> : "Turn off “Reserved only”, or try another date."}</div>
             ) : (
               secs.map((sec) => (
                 <section key={sec.id} className="sec" aria-label={`${sec.title}, ${sec.rows.length} trains`}>

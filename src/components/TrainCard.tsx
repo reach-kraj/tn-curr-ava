@@ -20,11 +20,18 @@ interface Props {
   onHover: (ti: number | null) => void;
 }
 
-const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+/**
+ * A compact one-row summary (a real <button> using the disclosure pattern) that expands into
+ * the full details: split-flap time, timeline, running days, stops and reminders.
+ */
 function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle, onHover }: Props) {
   const st = status(d, now);
+  const detailsId = `train-${d.ti}`;
   const [shared, setShared] = useState<string | null>(null);
+  const tag = (ms: number) => { const r = relDay(ms, travelDay); return r === "same day" ? "" : r; };
+
   const reminder = (): ReminderInput => ({
     d, boardAt: here.name, sourceName: stationName(d.orig), destName: stationName(d.dest),
     url: `${location.origin}/#${here.code}`,
@@ -51,10 +58,13 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
     }
     setTimeout(() => setShared(null), 2000);
   };
-  const upcoming = st.kind === "soon";
-  const tag = (ms: number) => { const r = relDay(ms, travelDay); return r === "same day" ? "" : r; };
+
+  const chipText = st.kind === "soon" ? `In ${duration(st.ms)}` : st.kind === "open" ? "Open now" : "Departed";
+  const chipLong = st.kind === "soon" ? `Booking opens in ${duration(st.ms)}` : st.kind === "open" ? "Current booking is open" : "Train has departed";
+  const opensTag = tag(d.opens);
+
   const steps = [
-    { cls: "is-open", t: clockAt(d.opens), s: "Booking opens", sub: tag(d.opens) },
+    { cls: "is-open", t: clockAt(d.opens), s: "Booking opens", sub: opensTag },
     ...(d.startsHere ? [] : [{ cls: "", t: clockAt(d.srcDep), s: `Leaves ${shortName(stationName(d.orig))}`, sub: tag(d.srcDep) }]),
     { cls: "is-here", t: clock(d.dep), s: `Departs ${shortName(here.name)}`, sub: "" },
     ...(d.reach != null ? [{ cls: "", t: clockAt(d.reach), s: `Reaches ${shortName(stationName(d.dest))}`, sub: tag(d.reach) }] : []),
@@ -62,93 +72,81 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
 
   return (
     <article
-      className={`card${open ? " on" : ""}${d.runs ? "" : " dim"}`}
+      className={`card st-${st.kind}${open ? " on" : ""}${d.runs ? "" : " dim"}`}
       data-ti={d.ti}
       onMouseEnter={() => onHover(d.ti)}
       onMouseLeave={() => onHover(null)}
     >
-      <button type="button" className="card-hit" aria-expanded={open} onClick={() => onToggle(d.ti)}>
-        <span className="sr-only">{open ? "Hide" : "Show"} details for {d.num} {d.name}</span>
+      <button type="button" className="row" aria-expanded={open} aria-controls={detailsId} onClick={() => onToggle(d.ti)}>
+        <span className="row-time">
+          <b>{clock(d.dep)}</b>
+          <small>{d.startsHere ? "starts" : "departs"}</small>
+        </span>
+        <span className="row-main">
+          <span className="tname">{d.name}</span>
+          <small className="row-route"><span className="num">{d.num}</span> {shortName(stationName(d.orig))} → {shortName(stationName(d.dest))}{!d.runs && " · not running"}</small>
+        </span>
+        <span className="row-open">
+          <small>Booking opens</small>
+          <b>{clockAt(d.opens)}</b>
+          <small className="row-opens-day">{opensTag || "same day"}</small>
+        </span>
+        <span className={`chip ${st.kind}`} title={chipLong}><span className="sr-only">{chipLong}</span><span aria-hidden="true">{chipText}</span></span>
+        <svg className="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
       </button>
 
-      <header className="card-top">
-        <div className="when">
-          <span className="when-t">{clock(d.dep)}</span>
-          <span className="when-l">{d.startsHere ? "starts here" : "departs"}</span>
-        </div>
-        <div className="ident">
-          <div className="ident-row">
-            <span className="num">{d.num}</span>
-            <span className="tname">{d.name}</span>
-          </div>
-          <div className="route">
-            {stationName(d.orig)} <span aria-hidden="true">→</span> {stationName(d.dest)}
-            {!d.runs && <em> · not running this date</em>}
-          </div>
-          <div className="days" aria-label="Runs on">
-            {DAYS.map((l, i) => <i key={i} className={(d.train[5] >> i) & 1 ? "y" : ""}>{l}</i>)}
-          </div>
-        </div>
-        <span className={`chip ${st.kind}`}>
-          {st.kind === "soon" ? `Opens in ${duration(st.ms)}` : st.kind === "open" ? "Open now" : "Departed"}
-        </span>
-      </header>
-
-      <div className="board">
-        <div>
-          <div className="board-k">Current booking opens</div>
-          <div className="board-sub">{relDay(d.opens, travelDay)} · {dayLabel(istDay(d.opens))}</div>
-        </div>
-        <div className="board-r">
-          <FlapTime value={clockAt(d.opens)} />
-          {upcoming && !open && (
-            <button type="button" className="bell" onClick={() => onToggle(d.ti)} aria-label={`Set a reminder for ${d.num}`}>
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      <ol className="tl" style={{ ["--n" as string]: steps.length }}>
-        {steps.map((s, i) => (
-          <li key={i} className={s.cls}>
-            <span className="tl-t">{s.t}</span>
-            <span className="tl-s">{s.s}</span>
-            {s.sub && <span className="tl-sub">{s.sub}</span>}
-          </li>
-        ))}
-      </ol>
-
       {open && (
-        <div className="more">
+        <div className="details" id={detailsId}>
+          <div className="board">
+            <div>
+              <div className="board-k">Current booking opens</div>
+              <div className="board-sub">{relDay(d.opens, travelDay)} · {dayLabel(istDay(d.opens))}</div>
+            </div>
+            <FlapTime value={clockAt(d.opens)} />
+          </div>
+
+          <ol className="tl" style={{ ["--n" as string]: steps.length }}>
+            {steps.map((s, i) => (
+              <li key={i} className={s.cls}>
+                <span className="tl-t">{s.t}</span>
+                <span className="tl-s">{s.s}</span>
+                {s.sub && <span className="tl-sub">{s.sub}</span>}
+              </li>
+            ))}
+          </ol>
+
           <div className="facts">
             <span>{d.startsHere ? "Starts here" : <>Arrives <b>{clock(d.arr)}</b> · halt <b>{Math.max(0, d.dep - d.arr)} min</b></>}</span>
             {d.reach != null && <span>Journey <b>{duration(d.reach - d.srcDep)}</b></span>}
-            <span><b>{stops.length}</b> stops in Tamil Nadu</span>
+            <span className="days" aria-label={`Runs on ${DAYS.filter((_, i) => (d.train[5] >> i) & 1).join(", ")}`}>
+              {DAYS.map((l, i) => <i key={i} aria-hidden="true" className={(d.train[5] >> i) & 1 ? "y" : ""}>{l[0]}</i>)}
+            </span>
           </div>
-          {upcoming ? (
+
+          {st.kind === "soon" ? (
             <div className="remind">
               <span className="remind-k">Remind me when booking opens</span>
               <div className="remind-row">
                 <a className="rbtn" href={googleCalendarUrl(reminder())} target="_blank" rel="noreferrer">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
-                  Google Calendar
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+                  Google Calendar<span className="sr-only"> (opens in a new tab)</span>
                 </a>
                 <button type="button" className="rbtn" onClick={downloadIcs}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>
                   Phone alarm
                 </button>
                 <button type="button" className="rbtn" onClick={share}>
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" /></svg>
-                  {shared ?? "Share"}
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" /></svg>
+                  <span aria-live="polite">{shared ?? "Share"}</span>
                 </button>
               </div>
               <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when booking opens.</span>
             </div>
           ) : (
-            <p className="remind-note">{st.kind === "open" ? "Current booking is open now. Book on IRCTC." : "This train has left."}</p>
+            <p className="remind-note">{st.kind === "open" ? "Current booking is open now. Book on IRCTC before the train departs." : "This train has left."}</p>
           )}
-          <div className="stops">
+
+          <div className="stops" aria-label={`${stops.length} stops in Tamil Nadu`}>
             {stops.map((x) => (
               <span key={x.station.code} className={x.station.code === here.code ? "me" : ""}>
                 {shortName(x.station.name)}<code>{clock(x.dep >= 0 ? x.dep : x.arr)}</code>
