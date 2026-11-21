@@ -6,6 +6,7 @@ import StationPicker, { type PickOption } from "./StationPicker";
 import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
 import TrainLogo from "./TrainLogo";
+import Footer from "./Footer";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
@@ -491,7 +492,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                       <div className="sec-grid">
                         {sec.rows.map((d) => (
                           <Fragment key={d.ti}>
-                            {d.ti === firstUpcoming && <div className="now-line" role="separator"><span>Now · {clockAt(now)}</span></div>}
+                            {d.ti === firstUpcoming && <div className="now-line" role="separator" aria-label={`Now, ${clockAt(now)}`}><span><TrainLogo height={14} />Now · {clockAt(now)}</span></div>}
                             <div className="sec-item">
                               <TrainCard d={d} here={sel} travelDay={travelDay} now={now} open={openTi === d.ti}
                                 stops={trainStops[d.ti]} stationName={stationName} onToggle={toggle} />
@@ -520,12 +521,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
         </section>
       </main>
 
-      <footer className="wrap foot">
-        <p>
-          Scheduled times from the free, unofficial <a href="https://github.com/Neo2308/indianrailways-gtfs" target="_blank" rel="noreferrer">Indian Railways GTFS feed</a> (version {data.feed}), {stations.length} Tamil Nadu &amp; Puducherry stations.
-          Not live running status. Confirm on <a href="https://www.irctc.co.in/" target="_blank" rel="noreferrer">IRCTC</a> before you travel. EMU, MEMU, DEMU and passenger trains are unreserved and hidden by “Reserved only”.
-        </p>
-      </footer>
+      <Footer feed={data.feed} stations={stations.length} />
     </div>
   );
 }

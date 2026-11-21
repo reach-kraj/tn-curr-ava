@@ -636,3 +636,77 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 .train-logo { flex: none; filter: drop-shadow(0 2px 3px rgb(17 17 17 / 0.18)); transition: transform 0.2s; }
 .brand:hover .train-logo { transform: translateY(-1px) rotate(-3deg); }
 .brand:hover .train-logo { transform: translateX(-2px); }
+
+/* ================= railway theme ================= */
+:root {
+  --rail: #8d99aa;
+  --sleeper: #c5cdd8;
+  /* two rails over sleepers: reused for the journey, the Now marker and the footer */
+  --track:
+    linear-gradient(var(--rail), var(--rail)) left 0 top 2px / 100% 2px no-repeat,
+    linear-gradient(var(--rail), var(--rail)) left 0 bottom 2px / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, var(--sleeper) 0 4px, transparent 4px 12px);
+}
+
+/* your journey runs along a track */
+.journey-bar { position: relative; padding-bottom: 1.6rem; }
+.journey-bar::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0.45rem; height: 12px; background: var(--track); opacity: 0.7; pointer-events: none; }
+.journey-bar::before { content: ""; position: absolute; inset: 0 0 auto; height: 100%; pointer-events: none; opacity: 0.5;
+  background:
+    repeating-linear-gradient(115deg, transparent 0 46px, rgb(141 153 170 / 0.08) 46px 48px, transparent 48px 58px, rgb(141 153 170 / 0.08) 58px 60px, transparent 60px 160px); }
+.journey-bar > .wrap { position: relative; z-index: 1; }
+
+/* "now" is where the train is on today's track */
+.now-line { gap: 0.75rem; }
+.now-line::before, .now-line::after { height: 10px; opacity: 1; border-radius: 0; background:
+    linear-gradient(var(--accent), var(--accent)) left 0 top 1px / 100% 2px no-repeat,
+    linear-gradient(var(--accent), var(--accent)) left 0 bottom 1px / 100% 2px no-repeat,
+    repeating-linear-gradient(90deg, #bcd0ff 0 3px, transparent 3px 10px); }
+.now-line span { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--surface); color: var(--ink); border: 1.5px solid var(--accent); padding: 0.15rem 0.7rem 0.15rem 0.45rem; box-shadow: var(--shadow-sm); }
+.now-line .train-logo { filter: none; }
+
+/* ================= footer: the last stop ================= */
+.site-foot { margin-top: 2.5rem; background: #121b2a; color: #c9d2de; }
+.foot-track { position: relative; height: 3.4rem; background: var(--bg); }
+.foot-track::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0.35rem; height: 12px; background: var(--track); }
+.foot-train { position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 2px; height: 100%; padding-bottom: 0.55rem; }
+.foot-train .train-logo, .foot-train .coach { flex: none; filter: drop-shadow(0 2px 2px rgb(17 17 17 / 0.15)); }
+.buffer-stop { flex: none; align-self: flex-end; width: 10px; height: 18px; margin: 0 6px 0.35rem 0; background: repeating-linear-gradient(135deg, #e0412f 0 4px, #fff 4px 8px); border: 1.5px solid #111; border-radius: 2px; }
+.foot-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; padding-block: 2rem 1.5rem; }
+.foot-brand { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display), sans-serif; font-weight: 800; font-size: 1.05rem; color: #fff; }
+.foot-about p { margin: 0.6rem 0 1rem; font-size: 0.9rem; line-height: 1.55; max-width: 44ch; }
+.foot-coffee { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; font-size: 0.85rem; color: #aab6c6; }
+.foot-col h2 { margin: 0 0 0.7rem; font-family: var(--font-display), sans-serif; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--board); }
+.foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.88rem; line-height: 1.45; }
+.site-foot a { color: #fff; text-decoration-color: rgb(255 255 255 / 0.35); text-underline-offset: 3px; }
+.site-foot a:hover { text-decoration-color: var(--board); }
+.site-foot :focus-visible { outline-color: var(--board); }
+.foot-bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem 1rem; padding-block: 1rem calc(1.25rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid rgb(255 255 255 / 0.1); font-size: 0.8rem; color: #93a0b2; }
+.foot-made { font-weight: 700; color: var(--board); }
+
+/* ================= buy me a coffee ================= */
+.coffee-btn { display: inline-flex; align-items: center; gap: 0.45rem; min-height: 2.75rem; padding: 0 1rem; border-radius: 12px; border: 2px solid var(--board-ink); background: var(--board); color: var(--board-ink); font-weight: 800; box-shadow: 0 3px 0 #000; transition: transform 0.15s, box-shadow 0.15s; }
+.coffee-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 #000; }
+.coffee-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #000; }
+.coffee { padding: 0; border: 0; border-radius: 22px; width: min(24rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); box-shadow: 0 30px 80px rgb(0 0 0 / 0.35); color: var(--ink); }
+.coffee::backdrop { background: rgb(15 26 42 / 0.55); backdrop-filter: blur(3px); }
+.coffee[open] { animation: rise 0.2s ease-out; }
+.coffee-in { position: relative; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 1.4rem 1.25rem 1.25rem; text-align: center; }
+.coffee-x { position: absolute; top: 0.6rem; right: 0.6rem; width: 2.5rem; height: 2.5rem; border: 0; border-radius: 10px; background: var(--line-2); font-size: 1.4rem; line-height: 1; color: var(--ink-2); }
+.coffee-x:hover { background: var(--edge); }
+.coffee-k { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.coffee h2 { margin: 0; font-family: var(--font-display), sans-serif; font-size: 1.4rem; font-weight: 800; }
+.coffee-sub { margin: 0; font-size: 0.88rem; color: var(--ink-2); }
+.coffee-qr { width: 100%; max-width: 16rem; height: auto; border-radius: 16px; border: 1px solid var(--edge); }
+.coffee-pay { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; width: 100%; min-height: 3rem; border-radius: 12px; background: var(--ink); color: #fff; font-weight: 800; text-decoration: none; }
+.coffee-pay:hover { background: #1f2d44; }
+.coffee-note { margin: 0; font-size: 0.78rem; color: var(--muted); }
+.coffee-id { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.5rem 0.5rem 0.5rem 0.8rem; border: 1px solid var(--edge); border-radius: 12px; background: var(--bg); font-size: 0.85rem; }
+.coffee-id span { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.coffee-id code { flex: 1; text-align: left; font-family: var(--font-mono), monospace; font-weight: 700; overflow-wrap: anywhere; }
+.coffee-id button { min-height: 2.25rem; padding: 0 0.8rem; border-radius: 9px; border: 1px solid var(--edge); background: var(--surface); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .foot-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .foot-train .coach:last-child { display: none; }
+}
