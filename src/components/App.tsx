@@ -382,7 +382,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
         <section className="content" id="board" aria-label="Trains and booking" tabIndex={-1}>
           <div className="tabs" id="tabs" role="tablist" aria-label="What to show">
             {TABS.map((t, i) => (
-              <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-selected={tab === t.id} aria-controls={`panel-${t.id}`}
+              <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-label={t.label} aria-selected={tab === t.id} aria-controls={`panel-${t.id}`}
                 tabIndex={tab === t.id ? 0 : -1} onClick={() => setTab(t.id)} onKeyDown={(e) => onTabKey(e, i)}>
                 <span className="tab-long">{t.label}</span><span className="tab-short" aria-hidden="true">{t.short}</span>
               </button>

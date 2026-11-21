@@ -742,3 +742,18 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 /* when the train began its journey on an earlier day, say so: current availability follows that day */
 .row-start { display: inline-flex; align-items: center; gap: 0.3rem; margin-top: 0.15rem; font-size: 0.78rem; font-weight: 600; color: var(--soon); }
 .row-start svg { flex: none; }
+
+/* ================= dropdowns: custom chevron with proper spacing ================= */
+.planner-form select, .fselect {
+  appearance: none; -webkit-appearance: none;
+  padding: 0 2.6rem 0 0.9rem;
+  background-color: var(--surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23566273' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.85rem center; background-size: 1rem;
+  text-overflow: ellipsis; white-space: nowrap; overflow: hidden; cursor: pointer;
+  font-weight: 600; color: var(--ink);
+}
+.planner-form select:hover, .fselect:hover { border-color: #b9c3d1; }
+.planner-form input[type="date"] { padding: 0 0.9rem; font-weight: 600; }
+/* line the fields up on their bottom edge even when a label wraps */
+.planner-form { align-items: end; }
