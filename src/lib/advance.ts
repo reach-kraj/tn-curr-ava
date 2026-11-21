@@ -83,3 +83,35 @@ export function breaks(list: Holiday[], from: string): Break[] {
   }
   return out;
 }
+
+export interface LongWeekend {
+  start: string; end: string; days: number;
+  names: string[];
+  /** a working day you must take off to get this break (Tue/Thu holidays), if any */
+  leaveDay?: string;
+  /** travel the day before, come back the morning after the last day off */
+  go: string; back: string;
+}
+
+/**
+ * Breaks of 3+ days: holidays on a Friday or Monday that join the weekend, plus breaks that need
+ * one day of leave (a Tuesday/Thursday holiday). Duplicates (two holidays bridged by the same leave
+ * day) are merged.
+ */
+export function longWeekends(list: Break[]): LongWeekend[] {
+  const out = new Map<string, LongWeekend>();
+  const names = (b: Break) => b.holidays.filter((h) => h.kind === "public").map((h) => h.name);
+  for (const b of list) {
+    if (b.days >= 3) {
+      out.set(`${b.start}|${b.end}`, { start: b.start, end: b.end, days: b.days, names: names(b), go: addDays(b.start, -1), back: addDays(b.end, 1) });
+    }
+    for (const l of b.leave) {
+      if (l.days < 3) continue;
+      const key = `${l.start}|${l.end}`;
+      const prev = out.get(key);
+      const merged = [...new Set([...(prev?.names ?? []), ...list.filter((x) => x.start <= l.end && x.end >= l.start).flatMap(names)])];
+      out.set(key, { start: l.start, end: l.end, days: l.days, names: merged, leaveDay: l.day, go: addDays(l.start, -1), back: addDays(l.end, 1) });
+    }
+  }
+  return [...out.values()].sort((a, b) => a.start.localeCompare(b.start));
+}

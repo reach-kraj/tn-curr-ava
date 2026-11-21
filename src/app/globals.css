@@ -701,3 +701,25 @@ a { color: var(--accent); }
 .swap:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .swap:disabled { opacity: 0.4; cursor: not-allowed; }
 @media (max-width: 900px) { .journey { margin-top: 8px; } }
+
+/* long weekends block */
+.lw .sec-h { margin-bottom: 0; }
+.lw-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; background: var(--surface); border: 1px solid var(--card-edge); border-top: 0; border-radius: 0 0 14px 14px; overflow: hidden; }
+.lw-row { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; }
+.lw-row + .lw-row { border-top: 1px solid var(--line-2); }
+.lw-row.on { background: #f6f8fd; }
+.lw-head { display: flex; align-items: center; gap: 12px; }
+.lw-days { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 12px; background: var(--ink); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; }
+.lw-days b { font-family: var(--font-display), sans-serif; font-size: 20px; color: var(--board); }
+.needs-leave .lw-days { background: #5b4a00; }
+.lw-title { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.lw-title > b { font-size: 14.5px; }
+.lw-title > span { font-size: 12.5px; color: var(--ink-2); }
+.lw-strip { list-style: none; margin: 0; padding: 0; display: flex; gap: 4px; }
+.lw-strip li { display: flex; flex-direction: column; align-items: center; width: 38px; padding: 4px 0; border-radius: 8px; background: #fff3b8; border: 1px solid #f0d34a; color: var(--board-ink); }
+.lw-strip li span { font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.lw-strip li b { font-family: var(--font-display), sans-serif; font-size: 15px; }
+.lw-strip li.leave { background: var(--surface); border: 1.5px dashed #c49a00; color: #7a5d00; }
+.lw-leave { margin: 0; font-size: 12.5px; color: var(--ink-2); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.lw-trips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.panel.full .lw { grid-column: 2; }

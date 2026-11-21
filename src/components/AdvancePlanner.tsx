@@ -4,7 +4,7 @@ import { useId, useMemo, useState } from "react";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import { onwardCodes } from "@/lib/filters";
 import { DOW, MON, addDays, duration, clock, clockAt, dayDiff, dayLabel, departures, istDay, istInstant, istParts, shortName, todayIst } from "@/lib/booking";
-import { ARP_DAYS, advanceOpens, breaks, lastBookable, openState, tatkalOpens, type Break, type OpenState } from "@/lib/advance";
+import { ARP_DAYS, advanceOpens, breaks, lastBookable, longWeekends, openState, tatkalOpens, type Break, type LongWeekend, type OpenState } from "@/lib/advance";
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
 
@@ -43,6 +43,7 @@ function DateTile({ day, big = false }: { day: string; big?: boolean }) {
 export default function AdvancePlanner({ data, sel, now, stationName, onRoute, to, stopsOf }: Props) {
   const today = todayIst(now);
   const list = useMemo(() => breaks(HOLIDAYS, today), [today]);
+  const weekends = useMemo(() => longWeekends(list), [list]);
   // default: the journey date whose booking opens today
   const [journey, setJourney] = useState(() => lastBookable(today));
   const [ti, setTi] = useState<number | null>(null);
@@ -160,6 +161,13 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute, t
         )}
       </section>
 
+      <section className="lw" aria-labelledby={`${formId}-lh`}>
+        <h3 className="sec-h" id={`${formId}-lh`}><span>Long weekends</span><small>go the day before · return next morning</small><b>{weekends.length}</b></h3>
+        <ul className="lw-list">
+          {weekends.map((w) => <LongWeekendRow key={`${w.start}|${w.end}`} w={w} now={now} today={today} onPlan={plan} active={journey === w.go || journey === w.back} />)}
+        </ul>
+      </section>
+
       <section className="fest" aria-labelledby={`${formId}-fh`}>
         <h3 className="sec-h" id={`${formId}-fh`}><span>Festivals &amp; holidays</span><small>Tamil Nadu · long weekends</small><b>{list.length}</b></h3>
         <ul className="fest-list">
@@ -181,6 +189,39 @@ function TripButton({ kind, hint, day, now, today, onPlan }: { kind: string; hin
       <span className="trip-day">{dayLabel(day)}</span>
       <span className={`trip-s ${st.cls}`}>{st.cls === "open" ? "booking open" : `books ${dayLabel(opensOn)}`}</span>
     </button>
+  );
+}
+
+function LongWeekendRow({ w, now, today, onPlan, active }: { w: LongWeekend; now: number; today: string; onPlan: (d: string) => void; active: boolean }) {
+  const inDays = dayDiff(today, w.start);
+  // one cell per day: holiday, weekend, or the leave day
+  const cells: { day: string; kind: "leave" | "off" }[] = [];
+  for (let d = w.start; d <= w.end; d = addDays(d, 1)) cells.push({ day: d, kind: d === w.leaveDay ? "leave" : "off" });
+  return (
+    <li className={`lw-row${active ? " on" : ""}${w.leaveDay ? " needs-leave" : ""}`}>
+      <div className="lw-head">
+        <span className="lw-days"><b>{w.days}</b> days</span>
+        <div className="lw-title">
+          <b>{dayLabel(w.start)} – {dayLabel(w.end)}</b>
+          <span>{w.names.join(" · ")} · <span className="fest-in">in {inDays} days</span></span>
+        </div>
+      </div>
+      <ol className="lw-strip" aria-label={`Days off: ${cells.map((c) => `${dayLabel(c.day)}${c.kind === "leave" ? " (take leave)" : ""}`).join(", ")}`}>
+        {cells.map((c) => {
+          const p = istParts(istInstant(c.day, 0));
+          return (
+            <li key={c.day} className={c.kind} aria-hidden="true">
+              <span>{DOW[p.dow].slice(0, 2)}</span><b>{p.d}</b>
+            </li>
+          );
+        })}
+      </ol>
+      {w.leaveDay && <p className="lw-leave"><span className="leave-badge">+1 leave</span> Take <b>{dayLabel(w.leaveDay)}</b> off to get all {w.days} days.</p>}
+      <div className="fest-trips lw-trips" role="group" aria-label={`Travel for the ${w.days}-day weekend`}>
+        <TripButton kind="Go" hint="day before" day={w.go} now={now} today={today} onPlan={onPlan} />
+        <TripButton kind="Return" hint="next morning" day={w.back} now={now} today={today} onPlan={onPlan} />
+      </div>
+    </li>
   );
 }
 

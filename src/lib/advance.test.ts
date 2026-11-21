@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { advanceOpens, breaks, lastBookable, openState, tatkalOpens } from "./advance";
+import { advanceOpens, breaks, lastBookable, longWeekends, openState, tatkalOpens } from "./advance";
 import { clockAt, departures, istDay, istInstant } from "./booking";
 import { HOLIDAYS } from "./holidays";
 import type { Dataset } from "./types";
@@ -74,5 +74,31 @@ describe("holiday breaks (TN offices closed Sat + Sun)", () => {
   test("Ayutha Pooja + Vijaya Dasami (Fri, Sat) make a 3-day break", () => {
     const a = list.find((b) => b.holidays.some((h) => h.name === "Ayutha Pooja"))!;
     expect([a.start, a.end]).toEqual(["2027-10-08", "2027-10-10"]);
+  });
+});
+
+describe("long weekends", () => {
+  const lw = longWeekends(breaks(HOLIDAYS, "2026-11-21"));
+  test("Christmas Fri 25 – Sun 27 Dec: go Thu 24, return Mon 28", () => {
+    const c = lw.find((x) => x.names.includes("Christmas"))!;
+    expect([c.start, c.end, c.days, c.go, c.back, c.leaveDay]).toEqual(["2026-12-25", "2026-12-27", 3, "2026-12-24", "2026-12-28", undefined]);
+  });
+  test("Pongal Fri 15 – Sun 17 Jan: return Mon 18", () => {
+    const p = lw.find((x) => x.names.includes("Pongal"))!;
+    expect([p.go, p.back]).toEqual(["2027-01-14", "2027-01-18"]);
+  });
+  test("Thai Poosam + Republic Day with Mon 25 off is one 5-day entry", () => {
+    const r = lw.filter((x) => x.names.includes("Republic Day"));
+    expect(r).toHaveLength(1);
+    expect([r[0].start, r[0].end, r[0].days, r[0].leaveDay]).toEqual(["2027-01-22", "2027-01-26", 5, "2027-01-25"]);
+    expect(r[0].names).toEqual(["Thai Poosam", "Republic Day"]);
+    expect(r[0].back).toBe("2027-01-27");
+  });
+  test("Mahaveer Jayanthi Mon 19 Apr joins the weekend: Sat 17 – Mon 19", () => {
+    const m = lw.find((x) => x.names.includes("Mahaveer Jayanthi"))!;
+    expect([m.start, m.end, m.go, m.back]).toEqual(["2027-04-17", "2027-04-19", "2027-04-16", "2027-04-20"]);
+  });
+  test("mid-week holidays without a bridge are not long weekends", () => {
+    expect(lw.some((x) => x.names.some((n) => n.startsWith("Ramzan")))).toBe(false);
   });
 });
