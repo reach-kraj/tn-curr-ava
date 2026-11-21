@@ -246,22 +246,26 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
             <span />
           </div>
         ) : (
-          <>
-            {!panelFull && (
-              <button type="button" className="panel-close" onClick={() => setPanelOpen(false)} aria-label="Hide train list">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="m9 6 6 6-6 6" /></svg>
+          <div className="panel-bar">
+            <span className="bar-title"><i aria-hidden="true" />Departures · {clockAt(now)}</span>
+            <div className="bar-btns">
+              <button type="button" className="bar-btn" onClick={() => setPanelFull((f) => !f)} aria-pressed={panelFull}
+                title={panelFull ? "Back to map view (Esc)" : "Show the board full screen"}>
+                {panelFull ? (
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+                )}
+                <span>{panelFull ? "Exit full screen" : "Expand"}</span>
+                {panelFull && <kbd>Esc</kbd>}
               </button>
-            )}
-            <button type="button" className="panel-full" onClick={() => setPanelFull((f) => !f)} aria-pressed={panelFull}
-              aria-label={panelFull ? "Exit full screen" : "Open the train list full screen"} title={panelFull ? "Exit full screen (Esc)" : "Full screen"}>
-              {panelFull ? (
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" /></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+              {!panelFull && (
+                <button type="button" className="bar-btn bar-icon" onClick={() => setPanelOpen(false)} aria-label="Hide train list" title="Hide the board">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6" /></svg>
+                </button>
               )}
-              <span>{panelFull ? "Exit full screen" : "Full screen"}</span>
-            </button>
-          </>
+            </div>
+          </div>
         )}
 
         <div className="panel-scroll">
