@@ -1229,7 +1229,7 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 
 /* ================= lively interactions: hover on desktop, press feedback on touch ================= */
 button, a, .pill, summary { -webkit-tap-highlight-color: transparent; }
-:where(.qchip, .near, .chip-d, .chip-f, .pill, .trip, .jump, .swap, .sync-btn, .topbar-book, .teaser, .next-up, .counts div, .left-toggle, .rm-btn, .coffee-btn, .seg button, .faq-wrap > summary, .jb-summary, .faq-item summary) {
+:where(.qchip, .near, .chip-d, .chip-f, .pill, .trip, .jump, .swap, .sync-btn, .topbar-book, .teaser, .next-up, .left-toggle, .rm-btn, .coffee-btn, .seg button, .faq-wrap > summary, .jb-summary, .faq-item summary) {
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
@@ -1254,8 +1254,7 @@ button, a, .pill, summary { -webkit-tap-highlight-color: transparent; }
   .seg button:hover { transform: translateY(-1px); }
 
   /* cards lift with a yellow edge */
-  .teaser:hover, .next-up:hover, .counts div:hover, .left-toggle:hover, .trip:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgb(15 26 42 / 0.12), inset 0 -3px 0 var(--board); }
-  .counts div:hover dd { animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1); }
+  .teaser:hover, .next-up:hover, .left-toggle:hover, .trip:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgb(15 26 42 / 0.12), inset 0 -3px 0 var(--board); }
   .teaser:hover .dtile, .trip:hover .trip-day { animation: wiggle 0.5s ease-in-out; }
 
   /* playful icon moves */
@@ -1289,7 +1288,7 @@ button, a, .pill, summary { -webkit-tap-highlight-color: transparent; }
   .row:active { transform: scale(0.985); }
   .row:active .row-open .flap { transform: scale(1.05); }
   .qchip:active, .near:active, .chip-d:active, .chip-f:active, .pill:active, .jump:active, .rm-btn:active, .seg button:active, .swap:active, .sync-btn:active, .topbar-book:active, .coffee-btn:active { transform: scale(0.94); }
-  .teaser:active, .next-up:active, .counts div:active, .left-toggle:active, .trip:active, .jb-summary:active, .faq-wrap > summary:active, .faq-item summary:active { transform: scale(0.97); box-shadow: inset 0 -3px 0 var(--board); }
+  .teaser:active, .next-up:active, .left-toggle:active, .trip:active, .jb-summary:active, .faq-wrap > summary:active, .faq-item summary:active { transform: scale(0.97); box-shadow: inset 0 -3px 0 var(--board); }
   .swap:active svg { transform: rotate(180deg); transition: transform 0.3s ease; }
   .sync-btn:active svg { transform: rotate(120deg); transition: transform 0.3s ease; }
   .tabs [role="tab"]:active { background: rgb(255 211 26 / 0.18); }
@@ -1299,4 +1298,10 @@ button, a, .pill, summary { -webkit-tap-highlight-color: transparent; }
 @keyframes wiggle { 25% { transform: rotate(-6deg); } 50% { transform: rotate(5deg); } 75% { transform: rotate(-2deg); } 100% { transform: none; } }
 @keyframes toot { 30% { transform: translateY(-3px) rotate(-2deg); } 60% { transform: translateY(0) rotate(1deg); } 100% { transform: none; } }
 .trip-day { display: inline-block; }
-.counts dd { display: block; transform-origin: left center; }
+
+/* station suggestions: wide enough to show the full name and its code + train count */
+.picker .sugg { right: auto; min-width: 100%; width: max-content; max-width: min(26rem, calc(100vw - 2rem)); overflow-x: hidden; }
+.picker .sugg button { gap: 1.25rem; padding: 0.55rem 1rem; }
+.picker .sugg button > span { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.picker .sugg button > code { flex: none; }
+@media (max-width: 760px) { .picker .sugg { right: 0; width: auto; max-width: none; } }
