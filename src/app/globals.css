@@ -679,3 +679,25 @@ a { color: var(--accent); }
 .fest-trips .trip { padding: 6px 8px; }
 .fest-trips .trip-s { font-size: 11px; white-space: nowrap; }
 .fest-trips .trip-day { white-space: nowrap; }
+/* trip buttons: never spill out of the box */
+.fest-trips .trip { overflow: hidden; }
+.trip-k { flex-wrap: wrap; white-space: normal; row-gap: 0; }
+.fest-trips .trip-s, .fest-trips .trip-day { white-space: normal; }
+
+/* From → To journey */
+.journey { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; gap: 6px; }
+.picker { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.picker-k { font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.picker-box { position: relative; display: flex; align-items: center; }
+.picker-box input { width: 100%; min-width: 0; height: 40px; padding: 0 64px 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font: inherit; font-weight: 600; color: var(--ink); text-overflow: ellipsis; }
+.picker-box input::placeholder { font-weight: 500; color: var(--muted); }
+.picker-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); padding-right: 12px; }
+.picker-code { position: absolute; right: 30px; font-family: var(--font-mono), monospace; font-size: 11px; font-weight: 700; color: var(--accent); background: var(--accent-soft); border-radius: 5px; padding: 1px 5px; pointer-events: none; }
+.picker-box:not(:has(.picker-clear)) .picker-code { right: 10px; }
+.picker-clear { position: absolute; right: 6px; width: 22px; height: 22px; border: 0; border-radius: 6px; background: none; color: var(--muted); font-size: 16px; cursor: pointer; }
+.picker-clear:hover { background: var(--line-2); color: var(--ink); }
+.picker .sugg { z-index: 6; }
+.swap { width: 36px; height: 40px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink-2); display: grid; place-items: center; cursor: pointer; }
+.swap:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.swap:disabled { opacity: 0.4; cursor: not-allowed; }
+@media (max-width: 900px) { .journey { margin-top: 8px; } }

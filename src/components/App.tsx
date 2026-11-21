@@ -7,6 +7,7 @@ import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner from "./AdvancePlanner";
+import StationPicker, { type PickOption } from "./StationPicker";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
   RULES, addDays, clock, clockAt, dayLabel, departures, duration, shortName, status, toStations, todayIst, type Rule,
@@ -88,6 +89,12 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
     [data, stationName],
   );
 
+  const fromOptions = useMemo<PickOption[]>(() => stations.map((s) => ({ code: s.code, name: s.name, sub: `${s.n} trains` })), [stations]);
+  const toOptions = useMemo<PickOption[]>(
+    () => [...fromOptions, ...Object.entries(data.o).map(([code, name]) => ({ code, name, sub: "outside TN" }))],
+    [fromOptions, data],
+  );
+
   const mobile = useIsMobile();
   const vh = useViewportHeight();
   const [selCode, setSelCode] = useState("TBM");
@@ -138,7 +145,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const sel = byCode.get(selCode) ?? stations[0];
   const selectStation = useCallback((s: Station, fly = true) => {
     setSelCode(s.code); setOpenTi(null);
-    setBf((f) => (f.to ? { ...f, to: "" } : f));
+    setBf((f) => (f.to === s.code ? { ...f, to: "" } : f));
     store.set("tn.station", s.code);
     history.replaceState(null, "", `#${s.code}`);
     setPanelOpen(true);
@@ -254,6 +261,17 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
         <span className="eyebrow-tag"><i />Tamil Nadu · Current availability</span>
         <h1>Pick a station. See when current availability opens for every train.</h1>
         <StationSearch stations={stations} trains={trainHits} onPick={(s) => selectStation(s, true)} onPickTrain={pickTrain} />
+        <div className="journey" role="group" aria-label="Journey">
+          <StationPicker label="From" value={{ code: sel.code, name: shortName(sel.name) }} options={fromOptions} placeholder="Boarding station"
+            onChange={(c) => { const s = c ? byCode.get(c) : null; if (s) selectStation(s, true); }} />
+          <button type="button" className="swap" disabled={!bf.to || !byCode.has(bf.to)}
+            onClick={() => { const back = byCode.get(bf.to)!; const from = sel.code; selectStation(back, true); setBf((f) => ({ ...f, to: from })); }}
+            aria-label="Swap From and To" title={bf.to && !byCode.has(bf.to) ? "Swap works when To is in Tamil Nadu" : "Swap From and To"}>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" /></svg>
+          </button>
+          <StationPicker label="To" allowClear value={bf.to ? { code: bf.to, name: shortName(stationName(bf.to)) } : null} options={toOptions.filter((o) => o.code !== sel.code)}
+            placeholder="Any station" onChange={(c) => setBf((f) => ({ ...f, to: c ?? "" }))} />
+        </div>
         <SyncButton data={data} onData={onData} className="sync-brand" />
       </header>
 
@@ -441,7 +459,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
 
           {tab === "advance" ? (
             <div className="list" key="panel-advance" id="panel-advance" role="tabpanel" aria-labelledby="tab-advance">
-              <AdvancePlanner data={data} sel={sel} now={now} stationName={stationName} onRoute={setPlanTi} />
+              <AdvancePlanner data={data} sel={sel} now={now} stationName={stationName} onRoute={setPlanTi} to={bf.to} stopsOf={(t) => trainStops[t]} />
             </div>
           ) : (
           <div className="list" key="panel-now" ref={listRef} id="panel-now" role="tabpanel" aria-labelledby="tab-now">

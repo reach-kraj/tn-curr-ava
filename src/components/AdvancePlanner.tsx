@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import type { Dataset, Station } from "@/lib/types";
+import type { Dataset, Station, TrainStop } from "@/lib/types";
+import { onwardCodes } from "@/lib/filters";
 import { DOW, MON, addDays, duration, clock, clockAt, dayDiff, dayLabel, departures, istDay, istInstant, istParts, shortName, todayIst } from "@/lib/booking";
 import { ARP_DAYS, advanceOpens, breaks, lastBookable, openState, tatkalOpens, type Break, type OpenState } from "@/lib/advance";
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
@@ -13,6 +14,9 @@ interface Props {
   now: number;
   stationName: (code: string) => string;
   onRoute: (ti: number | null) => void;
+  /** optional destination: only trains that go there */
+  to: string;
+  stopsOf: (ti: number) => TrainStop[];
 }
 
 const longDay = (day: string) => { const p = istParts(istInstant(day, 0)); return `${DOW[p.dow]} ${p.d} ${MON[p.m - 1]} ${p.y}`; };
@@ -36,7 +40,7 @@ function DateTile({ day, big = false }: { day: string; big?: boolean }) {
   );
 }
 
-export default function AdvancePlanner({ data, sel, now, stationName, onRoute }: Props) {
+export default function AdvancePlanner({ data, sel, now, stationName, onRoute, to, stopsOf }: Props) {
   const today = todayIst(now);
   const list = useMemo(() => breaks(HOLIDAYS, today), [today]);
   // default: the journey date whose booking opens today
@@ -45,8 +49,9 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute }:
   const formId = useId();
 
   const trains = useMemo(
-    () => departures(data, sel.code, journey, "10", { reservedOnly: true, runningOnly: true, query: "" }),
-    [data, sel.code, journey],
+    () => departures(data, sel.code, journey, "10", { reservedOnly: true, runningOnly: true, query: "" })
+      .filter((d) => !to || onwardCodes(d, stopsOf(d.ti)).includes(to)),
+    [data, sel.code, journey, to, stopsOf],
   );
   const chosen = trains.find((d) => d.ti === ti) ?? null;
   const originDay = chosen ? chosen.originDay : journey;
@@ -106,9 +111,9 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute }:
             <input id={`${formId}-date`} type="date" value={journey} min={today} onChange={(e) => { if (e.target.value) { setJourney(e.target.value); setTi(null); onRoute(null); } }} />
           </label>
           <label htmlFor={`${formId}-train`}>
-            <span>Train (optional)</span>
+            <span>Train{to ? ` to ${shortName(stationName(to))}` : ""} (optional)</span>
             <select id={`${formId}-train`} value={ti ?? ""} onChange={(e) => pickTrain(e.target.value)}>
-              <option value="">Any train starting that day</option>
+              <option value="">{trains.length ? "Any train starting that day" : to ? `No train to ${shortName(stationName(to))} that day` : "No reserved train that day"}</option>
               {trains.map((d) => (
                 <option key={d.ti} value={d.ti}>{clock(d.dep)} · {d.num} {d.name} · {shortName(stationName(d.orig))} → {shortName(stationName(d.dest))}</option>
               ))}
@@ -197,7 +202,7 @@ function FestRow({ b, now, today, onPlan, active }: { b: Break; now: number; tod
         {extra.length > 0 && <span className="fest-extra">{extra.map((h) => `${h.name} ${dayLabel(h.date)}`).join(" · ")}</span>}
         <div className="fest-trips" role="group" aria-label={`Travel options for ${pub[0]?.name ?? "this holiday"}`}>
           <TripButton kind="Go" hint="day before" day={b.go} now={now} today={today} onPlan={onPlan} />
-          <TripButton kind="Return" hint={b.days === 1 ? "same evening" : "last day"} day={b.back} now={now} today={today} onPlan={onPlan} />
+          <TripButton kind="Return" hint={b.days === 1 ? "same day" : "last day"} day={b.back} now={now} today={today} onPlan={onPlan} />
           <TripButton kind="Return" hint="day after" day={b.after} now={now} today={today} onPlan={onPlan} />
         </div>
         {b.leave.map((l) => (
