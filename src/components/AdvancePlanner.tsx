@@ -2,7 +2,7 @@
 
 import { useId, useMemo, useState } from "react";
 import type { Dataset, Station } from "@/lib/types";
-import { DOW, MON, clock, clockAt, dayDiff, dayLabel, departures, istDay, istInstant, istParts, shortName, todayIst } from "@/lib/booking";
+import { DOW, MON, addDays, duration, clock, clockAt, dayDiff, dayLabel, departures, istDay, istInstant, istParts, shortName, todayIst } from "@/lib/booking";
 import { ARP_DAYS, advanceOpens, breaks, lastBookable, openState, tatkalOpens, type Break, type OpenState } from "@/lib/advance";
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
@@ -39,7 +39,8 @@ function DateTile({ day, big = false }: { day: string; big?: boolean }) {
 export default function AdvancePlanner({ data, sel, now, stationName, onRoute }: Props) {
   const today = todayIst(now);
   const list = useMemo(() => breaks(HOLIDAYS, today), [today]);
-  const [journey, setJourney] = useState(() => list.find((b) => b.go >= today)?.go ?? lastBookable(today));
+  // default: the journey date whose booking opens today
+  const [journey, setJourney] = useState(() => lastBookable(today));
   const [ti, setTi] = useState<number | null>(null);
   const formId = useId();
 
@@ -66,6 +67,8 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute }:
     alarm: `Advance booking${chosen ? ` for ${chosen.num}` : ""} opens`,
   });
 
+  const todayOpened = now >= advanceOpens(lastBookable(today));
+
   const pickTrain = (v: string) => {
     const n = v === "" ? null : Number(v);
     setTi(n);
@@ -73,13 +76,26 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute }:
   };
   const plan = (day: string) => {
     setJourney(day); setTi(null); onRoute(null);
+    document.getElementById(`${formId}-train`)?.focus({ preventScroll: true });
     document.getElementById(`${formId}-result`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   };
 
   return (
     <div className="adv">
+      <section className="today-card" aria-label="Opening today">
+        <DateTile day={lastBookable(today)} big />
+        <div className="today-text">
+          <span className="today-k">Today · {dayLabel(today)}</span>
+          <b>Booking opens for journeys on {longDay(lastBookable(today))}</b>
+          <span className="today-time">
+            8:00 AM IST · <span className={todayOpened ? "open" : "soon"}>{todayOpened ? "open now" : `in ${duration(advanceOpens(lastBookable(today)) - now)}`}</span>
+          </span>
+          <span className="today-next">Tomorrow 8:00 AM: journeys on {longDay(lastBookable(addDays(today, 1)))}</span>
+        </div>
+        <button type="button" className="today-plan" onClick={() => plan(lastBookable(today))}>Pick a train</button>
+      </section>
       <p className="adv-window">
-        Booking opens <b>{ARP_DAYS} days</b> before the journey date at <b>8:00 AM IST</b>. Today you can book journeys up to <b>{longDay(lastBookable(today))}</b>.
+        Rule: booking opens <b>{ARP_DAYS} days</b> before the journey date (the day the train leaves its first station), at <b>8:00 AM IST</b>.
       </p>
 
       <section className="planner" aria-labelledby={`${formId}-h`}>
