@@ -785,3 +785,37 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 .tsel-empty { padding: 0.8rem; color: var(--muted); font-size: 0.88rem; }
 .tsel-list::-webkit-scrollbar { width: 8px; } .tsel-list::-webkit-scrollbar-thumb { background: var(--edge); border-radius: 8px; }
 @media (max-width: 760px) { .tsel-pop { min-width: 0; } }
+
+/* ================= book: web on computers, official apps on phones ================= */
+.book-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; flex: none; border: 2px solid var(--board-ink); border-radius: 12px; background: var(--board); color: var(--board-ink); font-weight: 800; white-space: nowrap; box-shadow: 0 3px 0 var(--board-ink); transition: transform 0.15s, box-shadow 0.15s; }
+.book-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--board-ink); }
+.book-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--board-ink); }
+.book-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.book-md { min-height: 2.75rem; padding: 0 1.05rem; font-size: 0.95rem; }
+.book-sm { min-height: 2.25rem; padding: 0 0.8rem; font-size: 0.82rem; border-radius: 10px; box-shadow: 0 2px 0 var(--board-ink); }
+.book-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.75rem 1rem; padding: 0.75rem 0.9rem; border-radius: 12px; background: #eefaf3; border: 1px solid #c9ecd8; }
+.book-row p { margin: 0; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; font-weight: 600; color: #0b5c35; }
+.planner-result { flex-wrap: wrap; }
+.pr-book { margin-left: auto; }
+
+.book-sheet { padding: 0; border: 0; width: min(26rem, calc(100vw - 1.5rem)); border-radius: 22px; box-shadow: 0 30px 80px rgb(0 0 0 / 0.35); color: var(--ink); }
+.book-sheet::backdrop { background: rgb(15 26 42 / 0.55); backdrop-filter: blur(3px); }
+.book-sheet[open] { animation: rise 0.2s ease-out; }
+.book-in { display: flex; flex-direction: column; gap: 0.75rem; padding: 0.9rem 1.1rem calc(1.1rem + env(safe-area-inset-bottom, 0px)); }
+.book-grip { align-self: center; width: 2.6rem; height: 5px; border-radius: 3px; background: var(--edge); }
+.book-head { display: flex; align-items: center; justify-content: space-between; }
+.book-head h2 { margin: 0; font-family: var(--font-display), sans-serif; font-size: 1.3rem; font-weight: 800; }
+.book-head .coffee-x { position: static; }
+.book-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.book-opt { display: flex; align-items: center; gap: 0.8rem; min-height: 4rem; padding: 0.7rem 0.85rem; border: 1px solid var(--edge); border-radius: 14px; background: var(--surface); color: var(--ink); text-decoration: none; box-shadow: var(--shadow-sm); }
+.book-opt:hover { border-color: var(--ink); background: var(--neutral-hover); }
+.book-ico { flex: none; display: grid; place-items: center; width: 2.6rem; height: 2.6rem; border-radius: 12px; background: var(--board); color: var(--board-ink); border: 1.5px solid var(--board-ink); }
+.book-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.book-text b { font-size: 1rem; }
+.book-text small { font-size: 0.8rem; color: var(--muted); }
+.book-go { flex: none; font-size: 0.82rem; font-weight: 800; color: var(--accent); }
+.book-note { margin: 0; font-size: 0.8rem; color: var(--muted); text-align: center; }
+@media (max-width: 760px) {
+  .book-sheet { margin: auto auto 0; width: 100%; max-width: 100%; border-radius: 22px 22px 0 0; }
+  .topbar-book .sr-only + * { display: none; }
+}

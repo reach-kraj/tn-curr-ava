@@ -9,6 +9,7 @@ import TrainLogo from "./TrainLogo";
 import Footer from "./Footer";
 import Signal from "./Signal";
 import ThemedSelect from "./ThemedSelect";
+import BookButton from "./BookButton";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
@@ -283,6 +284,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
             <StationSearch stations={stations} trains={trainHits} onPick={selectStation} onPickTrain={pickTrain} />
             <kbd className="kbd-hint" aria-hidden="true">/</kbd>
           </div>
+          <BookButton label="Book tickets" size="sm" className="topbar-book" />
           <SyncButton data={data} onData={onData} className="topbar-sync" />
         </div>
       </header>

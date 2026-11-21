@@ -9,6 +9,7 @@ import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
 import Signal from "./Signal";
 import ThemedSelect from "./ThemedSelect";
+import BookButton from "./BookButton";
 
 const longDay = (day: string) => { const p = istParts(istInstant(day, 0)); return `${DOW[p.dow]} ${p.d} ${MON[p.m - 1]} ${p.y}`; };
 
@@ -135,6 +136,7 @@ export default function AdvancePlanner({ data, sel, now, stationName, to, stopsO
             <span className="pr-time">8:00 AM IST</span>
             <span className={`pr-state ${st.cls}`}><Signal aspect={st.cls as "open" | "soon" | "gone"} />{st.text}</span>
           </div>
+          {state.kind === "open" && <BookButton label={chosen ? `Book ${chosen.num}` : "Book now"} className="pr-book" />}
         </div>
 
         {chosen && chosen.originDay !== journey ? (

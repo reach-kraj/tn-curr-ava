@@ -3,6 +3,7 @@
 import { memo, useState } from "react";
 import FlapTime from "./FlapTime";
 import Signal from "./Signal";
+import BookButton from "./BookButton";
 import { googleCalendarUrl, icsFile, icsFileName, reminderText, type ReminderInput } from "@/lib/reminders";
 import type { Station, TrainStop } from "@/lib/types";
 import {
@@ -150,7 +151,14 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
               <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when current availability opens.</span>
             </div>
           ) : (
-            <p className="remind-note">{st.kind === "open" ? "Current availability is open now. Book on IRCTC before the train departs." : "This train has left."}</p>
+            st.kind === "open" ? (
+              <div className="book-row">
+                <p><Signal aspect="open" /> Current availability is open now. Book before it leaves {shortName(here.name)}.</p>
+                <BookButton label={`Book ${d.num}`} />
+              </div>
+            ) : (
+              <p className="remind-note">This train has left.</p>
+            )
           )}
 
           <RouteStops d={d} stops={stops} here={here} stationName={stationName} />
