@@ -553,3 +553,23 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
   .tabs [role="tab"] { font-size: 0.9rem; }
 }
 .route .linkbtn { align-self: flex-start; padding-left: 1.5rem; }
+/* Search trains: primary action next to From / To */
+.jb-route { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; }
+.go-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem; height: 3.1rem; padding: 0 1.15rem; border: 0; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 800; font-size: 0.95rem; white-space: nowrap; box-shadow: 0 8px 18px rgb(26 86 232 / 0.3); transition: transform 0.15s, box-shadow 0.15s, background 0.15s; }
+.go-btn:hover { background: #1447c4; transform: translateY(-1px); box-shadow: 0 12px 24px rgb(26 86 232 / 0.35); }
+.go-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+#board { scroll-margin-top: 4.5rem; }
+@media (max-width: 1020px) { .jb-row { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .jb-route { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "from swap" "to swap" "go go"; }
+  .jb-route > .go-btn { grid-area: go; width: 100%; }
+  #board { scroll-margin-top: 7.5rem; }
+}
+@media (max-width: 760px) { .jb-route > .picker:nth-child(3) { grid-area: to; } }
+/* never let the date row's minimum width push the card past the screen */
+@media (max-width: 1020px) { .jb-row { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 760px) {
+  .jb-date-row { display: grid; grid-template-columns: auto auto minmax(0, 1fr); }
+  .jb-date-row input { width: 100%; min-width: 0; padding-inline: 0.5rem; }
+  .chip-d { padding-inline: 0.75rem; }
+}

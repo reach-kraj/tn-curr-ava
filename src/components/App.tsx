@@ -99,7 +99,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   );
   // major long-distance stations (ranking by stop count would favour suburban EMU halts)
   const popular = useMemo(
-    () => ["MS", "TBM", "CGL", "VM", "MAS", "TPJ", "MDU", "CBE", "SA", "KPD"].map((c) => byCode.get(c)).filter((s): s is Station => !!s),
+    () => ["MS", "TBM", "CGL", "VM", "MAS", "TPJ", "MDU"].map((c) => byCode.get(c)).filter((s): s is Station => !!s),
     [byCode],
   );
 
@@ -226,6 +226,15 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       document.querySelector<HTMLElement>(`[data-ti="${ti}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
     }));
   };
+  const searchTrains = () => {
+    setTab("now");
+    setOptionsOpen(false);
+    requestAnimationFrame(() => {
+      const board = document.getElementById("board");
+      board?.scrollIntoView({ block: "start", behavior: "smooth" });
+      board?.focus({ preventScroll: true });
+    });
+  };
   const jumpToNow = () => document.querySelector<HTMLElement>(".now-line")?.scrollIntoView({ block: "center", behavior: "smooth" });
   const pickTrain = (ti: number) => {
     // board where the user already is if the train stops there, else its first boardable Tamil Nadu stop
@@ -287,6 +296,10 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
               </button>
               <StationPicker label="To" allowClear value={bf.to ? { code: bf.to, name: shortName(stationName(bf.to)) } : null} options={toOptions.filter((o) => o.code !== sel.code)}
                 placeholder="Any station" onChange={(c) => setBf((f) => ({ ...f, to: c ?? "" }))} />
+              <button type="button" className="go-btn" onClick={searchTrains}>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
+                Search trains
+              </button>
             </div>
             <div className="jb-date" role="group" aria-labelledby="jb-date-k">
               <span className="jb-k" id="jb-date-k">Travel date</span>
@@ -312,7 +325,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
             )}
             <div className="qchips" role="group" aria-label="Major stations">
               <span className="qk" aria-hidden="true">Major</span>
-              {popular.filter((s) => s.code !== sel.code).map((s) => (
+              {popular.filter((s) => s.code !== sel.code).slice(0, 5).map((s) => (
                 <button key={s.code} type="button" className="qchip" onClick={() => selectStation(s)}>{shortName(s.name)}</button>
               ))}
             </div>
@@ -461,7 +474,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 </p>
                 {left.length > 0 && (
                   <button type="button" className="left-toggle" aria-expanded={showLeft} onClick={() => setShowLeft((v) => !v)}>
-                    <span><b>{left.length}</b> train{left.length === 1 ? "" : "s"} already left today</span>
+                    <span><b>{left.length}</b> {left.length === 1 ? "train" : "trains"} already left today</span>
                     <span className="left-act">{showLeft ? "Hide" : "Show"}</span>
                   </button>
                 )}
