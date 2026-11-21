@@ -885,3 +885,84 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 @media (max-width: 760px) { :root { --mtop: 6.45rem; } }  /* matches the two-row top bar (≈103px) */
 [role="tabpanel"] { scroll-margin-top: 4.5rem; }
 @media (max-width: 760px) { [role="tabpanel"] { scroll-margin-top: calc(var(--mtop) + 4rem); } }
+
+/* ================= phones & tablets: compact journey ================= */
+.jb-summary { display: none; }
+@media (max-width: 1020px) {
+  .journey-bar { padding-block: 0.6rem 1.3rem; }
+  .journey-bar > .wrap { padding-block: 0.5rem; }
+  .jb-summary {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    width: 100%; min-height: 3.4rem; padding: 0.4rem 0.35rem; border: 0; background: none; text-align: left; color: var(--ink);
+  }
+  .jb-summary:focus-visible { outline-offset: 2px; border-radius: 12px; }
+  .jb-sum-main { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .jb-sum-route { display: flex; align-items: center; gap: 0.45rem; min-width: 0; font-size: 1.05rem; }
+  .jb-sum-route b { font-family: var(--font-display), sans-serif; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .jb-sum-route span { font-weight: 600; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .jb-sum-route svg { flex: none; color: var(--muted); }
+  .jb-sum-date { font-size: 0.82rem; font-weight: 600; color: var(--muted); }
+  .jb-sum-edit { flex: none; display: inline-flex; align-items: center; gap: 0.3rem; min-height: 2.4rem; padding: 0 0.85rem; border-radius: 999px; border: 1px solid var(--edge); background: var(--surface); font-size: 0.85rem; font-weight: 800; box-shadow: var(--shadow-sm); }
+  .jb-summary[aria-expanded="true"] .jb-sum-edit { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .jb-summary[aria-expanded="true"] .jb-sum-edit svg { transform: rotate(180deg); }
+  .jb-form { display: none; }
+  .jb-form.open { display: block; margin-top: 0.6rem; padding-top: 0.75rem; border-top: 1px solid var(--line-2); animation: rise 0.18s ease-out; }
+}
+
+/* ================= tablets: same tab treatment as phones ================= */
+@media (min-width: 761px) and (max-width: 1020px) {
+  :root { --mtop: 3.75rem; }
+  .layout { display: flex; flex-direction: column; align-items: stretch; gap: 0.85rem; }
+  .side, .content { display: contents; }
+  .content > .tabs { order: 1; position: sticky; top: var(--mtop); z-index: 15; margin: 0; background: rgb(232 236 243 / 0.96); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .side > .nameboard { order: 2; margin-top: 1rem; }
+  .side > .counts { order: 3; }
+  .side > .next-wrap, .side > .side-note { order: 4; }
+  .side > .teaser { order: 5; }
+  .content > [role="tabpanel"] { order: 6; }
+  .app:not(.tab-now) .side > :not(.nameboard) { display: none; }
+  .sec-h { top: calc(var(--mtop) + 3.6rem); }
+  .card { scroll-margin-top: calc(var(--mtop) + 7rem); }
+  [role="tabpanel"] { scroll-margin-top: calc(var(--mtop) + 4rem); }
+}
+
+/* ================= phones: tighter station summary ================= */
+@media (max-width: 760px) {
+  .side > .nameboard { padding: 0.45rem 0.8rem 0.55rem; }
+  .nameboard h1 { font-size: 1.35rem; }
+  .counts { gap: 0.35rem; }
+  .counts div { padding: 0.45rem 0.6rem; border-radius: 12px; }
+  .counts dt { font-size: 0.62rem; }
+  .counts dd { font-size: 1.15rem; }
+  .counts dd.d { font-size: 0.85rem; line-height: 1.6; }
+  .next-up { padding: 0.7rem 0.8rem; }
+  .side > .teaser { display: none; }   /* the Holidays tab has the full list */
+}
+@media (max-width: 1020px) {
+  .jb-sum-route b { flex: none; max-width: 60%; }
+  .jb-sum-route span { flex: 1 1 auto; min-width: 0; }
+}
+@media (max-width: 760px) {
+  .rulerow .rulenote { display: none; }       /* the 10/8/4 hrs switch says it */
+  .rulerow { margin-top: 0.4rem; }
+  .toolbar { gap: 0.4rem; }
+  .toolbar .seg button { min-height: 2.25rem; padding-inline: 0.65rem; font-size: 0.82rem; }
+  .opt-btn { min-height: 2.5rem; }
+  .count { margin: 0.4rem 0.2rem; font-size: 0.8rem; }
+  .left-toggle { min-height: 2.6rem; margin-bottom: 0.5rem; }
+  .next-remind .rm-btn { min-height: 2.1rem; }
+}
+.nb-counts-m { display: none; }
+@media (max-width: 760px) {
+  .side > .counts { display: none; }            /* folded into the nameboard on phones */
+  .nb-counts-m { display: block; margin: 0.15rem 0 0; font-family: var(--font-mono), monospace; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+}
+@media (min-width: 761px) and (max-width: 1020px) {
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 0.85rem; }
+  .content > .tabs, .side > .nameboard, .side > .counts, .content > [role="tabpanel"] { grid-column: 1 / -1; }
+  .side > .next-wrap, .side > .side-note { grid-column: 1; }
+  .side > .teaser { grid-column: 2; height: 100%; }
+  .app:not(:has(.side > .next-wrap)) .side > .teaser { grid-column: 2; }
+  .side > .counts { display: none; }
+  .nb-counts-m { display: block; margin: 0.15rem 0 0; font-family: var(--font-mono), monospace; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+}

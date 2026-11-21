@@ -126,6 +126,8 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const [recent, setRecent] = useState<string[]>([]);
   const [geo, setGeo] = useState<{ busy: boolean; msg: string | null }>({ busy: false, msg: null });
   const [showLeft, setShowLeft] = useState(false);
+  // phones / tablets: the journey form folds into a one-line summary
+  const [jbOpen, setJbOpen] = useState(false);
 
   // restore station from the link (#CGL) or last visit, plus preferences
   useEffect(() => {
@@ -234,6 +236,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
     }));
   };
   const searchTrains = () => {
+    setJbOpen(false);
     setTab("now");
     setOptionsOpen(false);
     requestAnimationFrame(() => {
@@ -303,6 +306,21 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
 
       <section className="journey-bar" aria-label="Your journey">
         <div className="wrap">
+          <button type="button" className="jb-summary" aria-expanded={jbOpen} aria-controls="jb-form" onClick={() => setJbOpen((o) => !o)}>
+            <span className="jb-sum-main">
+              <span className="jb-sum-route">
+                <b>{shortName(sel.name)}</b>
+                <svg viewBox="0 0 20 8" width="18" height="8" aria-hidden="true"><path d="M1 4h16m-4-3 4 3-4 3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                <span>{bf.to ? shortName(stationName(bf.to)) : "Any station"}</span>
+              </span>
+              <span className="jb-sum-date">{travelDay === today ? "Today" : travelDay === addDays(today, 1) ? "Tomorrow" : "Travel"} · {dayLabel(travelDay)}</span>
+            </span>
+            <span className="jb-sum-edit">
+              {jbOpen ? "Done" : "Change"}
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </span>
+          </button>
+          <div id="jb-form" className={`jb-form${jbOpen ? " open" : ""}`}>
           <div className="jb-row">
             <div className="jb-route">
               <StationPicker label="From" value={{ code: sel.code, name: shortName(sel.name) }} options={fromOptions} placeholder="Boarding station"
@@ -349,6 +367,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
             </div>
             <p id="geo-msg" className="geo-msg" aria-live="polite">{geo.msg}</p>
           </div>
+          </div>
         </div>
       </section>
 
@@ -357,6 +376,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
           <div className="nameboard">
             <div className="nameboard-top"><span>{sel.code}</span><span>{sel.n} trains stop</span></div>
             <h1>{shortName(sel.name)}</h1>
+            <p className="nb-counts-m">{allRows.length} departing · {openNow} open now</p>
           </div>
           <dl className="counts">
             <div><dt>Departing</dt><dd>{allRows.length}</dd></div>
