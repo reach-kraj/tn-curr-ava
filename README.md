@@ -11,6 +11,7 @@ Opens on Tambaram (TBM) by default. Example: 16103 Tambaram → Rameswaram leave
 - MapLibre GL 3D map: OpenFreeMap vector tiles (OpenStreetMap), AWS Open Data terrain, 3D buildings, sky, animated clouds
 - All booking maths runs in the browser, in IST
 - Reminders: Google Calendar link, `.ics` file with alarms (10 min before + at opening), share sheet
+- **Sync** button: downloads the latest GTFS feed in the browser (web worker), rebuilds the Tamil Nadu timetable if newer and keeps it on the device
 - Hosted on Cloudflare Workers static assets (`wrangler.jsonc`)
 
 ## Commands (bun)

@@ -16,4 +16,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - The map (`src/components/WorldMap.tsx`) is MapLibre GL; it restyles the OpenFreeMap `liberty` style at runtime and falls back to our own outline if tiles fail. `Clouds.tsx` is a canvas overlay tied to map coordinates.
 - Reminder links/`.ics` generation live in `src/lib/reminders.ts` (tested).
 - Board filters, sorting and time-of-day/status sections live in `src/lib/filters.ts` (tested).
+- GTFS → dataset logic is `src/lib/buildDataset.ts`, shared by `scripts/build-data.ts` and the in-browser Sync (`src/workers/sync.worker.ts`, result saved in localStorage `tn.dataset`).
 - Run `bun run check` before committing.

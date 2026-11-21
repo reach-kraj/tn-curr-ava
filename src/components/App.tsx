@@ -5,6 +5,7 @@ import WorldMap, { type MapPadding } from "./WorldMap";
 import StationSearch from "./StationSearch";
 import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
+import SyncButton, { DATASET_KEY } from "./SyncButton";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
   RULES, addDays, clockAt, dayLabel, departures, shortName, status, toStations, todayIst, type Rule,
@@ -25,14 +26,19 @@ export default function App() {
 
   useEffect(() => {
     fetch("/data/tn.json")
-      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(setData)
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json() as Promise<Dataset>; })
+      .then((bundled) => {
+        // prefer a timetable synced on this device if it is newer than the one shipped with the site
+        let synced: Dataset | null = null;
+        try { const raw = localStorage.getItem(DATASET_KEY); synced = raw ? (JSON.parse(raw) as Dataset) : null; } catch { synced = null; }
+        setData(synced && synced.feed > bundled.feed && Array.isArray(synced.t) ? synced : bundled);
+      })
       .catch((e) => setError(String(e)));
   }, []);
 
   if (error) return <div className="loading">Couldn’t load the timetable ({error}). Refresh to try again.</div>;
   if (!data) return <div className="loading"><span className="loading-dot" />Loading Tamil Nadu timetable…</div>;
-  return <Explorer data={data} />;
+  return <Explorer data={data} onData={setData} />;
 }
 
 type Sheet = "peek" | "half" | "full";
@@ -62,7 +68,7 @@ function useViewportHeight() {
   return vh;
 }
 
-function Explorer({ data }: { data: Dataset }) {
+function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => void }) {
   const stations = useMemo(() => toStations(data), [data]);
   const byCode = useMemo(() => new Map(stations.map((s) => [s.code, s])), [stations]);
   const stationName = useCallback((c: string) => byCode.get(c)?.name ?? data.o[c] ?? c, [byCode, data]);
@@ -216,6 +222,7 @@ function Explorer({ data }: { data: Dataset }) {
         <span className="eyebrow-tag"><i />Tamil Nadu · Current booking</span>
         <h1>Pick a station. See when current booking opens for every train.</h1>
         <StationSearch stations={stations} onPick={(s) => selectStation(s, true)} />
+        <SyncButton data={data} onData={onData} className="sync-brand" />
       </header>
 
       {!mobile && !panelOpen && (
@@ -387,6 +394,7 @@ function Explorer({ data }: { data: Dataset }) {
                 </section>
               ))
             )}
+            <SyncButton data={data} onData={onData} className="sync-foot" />
             <footer className="foot">
               Scheduled times from the free, unofficial <a href="https://github.com/Neo2308/indianrailways-gtfs" target="_blank" rel="noreferrer">Indian Railways GTFS feed</a> (version {data.feed}). Not live running status. Confirm on IRCTC before you travel. EMU, MEMU, DEMU and passenger trains are unreserved and hidden by “Reserved only”. Map © OpenStreetMap contributors, OpenFreeMap; terrain © Mapzen.
             </footer>
