@@ -8,7 +8,9 @@ Example: 16103 Tambaram → Rameswaram leaves Tambaram at 6:10 PM, so at Chengal
 ## Stack
 
 - Next.js 16 (App Router) as a **static export** (`out/`) — no server code
-- d3-zoom for the map; all booking maths runs in the browser, in IST
+- MapLibre GL 3D map: OpenFreeMap vector tiles (OpenStreetMap), AWS Open Data terrain, 3D buildings, sky, animated clouds
+- All booking maths runs in the browser, in IST
+- Reminders: Google Calendar link, `.ics` file with alarms (10 min before + at opening), share sheet
 - Hosted on Cloudflare Workers static assets (`wrangler.jsonc`)
 
 ## Commands (bun)

@@ -1,7 +1,8 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState } from "react";
 import FlapTime from "./FlapTime";
+import { googleCalendarUrl, icsFile, icsFileName, reminderText, type ReminderInput } from "@/lib/reminders";
 import type { Station, TrainStop } from "@/lib/types";
 import {
   clock, clockAt, dayLabel, duration, istDay, relDay, shortName, status, type Departure,
@@ -23,6 +24,34 @@ const DAYS = ["M", "T", "W", "T", "F", "S", "S"];
 
 function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle, onHover }: Props) {
   const st = status(d, now);
+  const [shared, setShared] = useState<string | null>(null);
+  const reminder = (): ReminderInput => ({
+    d, boardAt: here.name, sourceName: stationName(d.orig), destName: stationName(d.dest),
+    url: `${location.origin}/#${here.code}`,
+  });
+  const downloadIcs = () => {
+    const r = reminder();
+    const blob = new Blob([icsFile(r)], { type: "text/calendar;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = icsFileName(r);
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+  };
+  const share = async () => {
+    const { title, body } = reminderText(reminder());
+    try {
+      if (navigator.share) { await navigator.share({ title, text: body }); return; }
+      await navigator.clipboard.writeText(`${title}\n${body}`);
+      setShared("Copied");
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") setShared("Couldn’t share");
+    }
+    setTimeout(() => setShared(null), 2000);
+  };
+  const upcoming = st.kind === "soon";
   const tag = (ms: number) => { const r = relDay(ms, travelDay); return r === "same day" ? "" : r; };
   const steps = [
     { cls: "is-open", t: clockAt(d.opens), s: "Booking opens", sub: tag(d.opens) },
@@ -70,7 +99,14 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
           <div className="board-k">Current booking opens</div>
           <div className="board-sub">{relDay(d.opens, travelDay)} · {dayLabel(istDay(d.opens))}</div>
         </div>
-        <FlapTime value={clockAt(d.opens)} />
+        <div className="board-r">
+          <FlapTime value={clockAt(d.opens)} />
+          {upcoming && !open && (
+            <button type="button" className="bell" onClick={() => onToggle(d.ti)} aria-label={`Set a reminder for ${d.num}`}>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+            </button>
+          )}
+        </div>
       </div>
 
       <ol className="tl" style={{ ["--n" as string]: steps.length }}>
@@ -90,6 +126,28 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
             {d.reach != null && <span>Journey <b>{duration(d.reach - d.srcDep)}</b></span>}
             <span><b>{stops.length}</b> stops in Tamil Nadu</span>
           </div>
+          {upcoming ? (
+            <div className="remind">
+              <span className="remind-k">Remind me when booking opens</span>
+              <div className="remind-row">
+                <a className="rbtn" href={googleCalendarUrl(reminder())} target="_blank" rel="noreferrer">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
+                  Google Calendar
+                </a>
+                <button type="button" className="rbtn" onClick={downloadIcs}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>
+                  Phone alarm
+                </button>
+                <button type="button" className="rbtn" onClick={share}>
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7M16 6l-4-4-4 4M12 2v14" /></svg>
+                  {shared ?? "Share"}
+                </button>
+              </div>
+              <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when booking opens.</span>
+            </div>
+          ) : (
+            <p className="remind-note">{st.kind === "open" ? "Current booking is open now. Book on IRCTC." : "This train has left."}</p>
+          )}
           <div className="stops">
             {stops.map((x) => (
               <span key={x.station.code} className={x.station.code === here.code ? "me" : ""}>
