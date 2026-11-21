@@ -299,6 +299,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       </header>
 
       <section className="journey-bar" aria-label="Your journey">
+        <span className="jb-runner" aria-hidden="true"><TrainLogo height={15} /></span>
         <div className="wrap">
           <button type="button" className="jb-summary" aria-expanded={jbOpen} aria-controls="jb-form" onClick={() => setJbOpen((o) => !o)}>
             <span className="jb-sum-main">
