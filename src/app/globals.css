@@ -1226,3 +1226,77 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
   .sk-trow { grid-template-columns: 3.5rem minmax(0, 1fr) 5rem; }
 }
 .sk-journey { padding: 0; background: none; border: 0; box-shadow: none; border-radius: 0; }
+
+/* ================= lively interactions: hover on desktop, press feedback on touch ================= */
+button, a, .pill, summary { -webkit-tap-highlight-color: transparent; }
+:where(.qchip, .near, .chip-d, .chip-f, .pill, .trip, .jump, .swap, .sync-btn, .topbar-book, .teaser, .next-up, .counts div, .left-toggle, .rm-btn, .coffee-btn, .seg button, .faq-wrap > summary, .jb-summary, .faq-item summary) {
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* train rows: a warm wash sweeps in from the left, the train name slides, the flap board pops */
+.card { position: relative; }
+.row { position: relative; isolation: isolate; transition: transform 0.15s ease; }
+.row::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgb(255 211 26 / 0.28), rgb(255 211 26 / 0.08) 55%, transparent); transform: scaleX(0); transform-origin: left; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.row-main, .row-time, .row-open .flap { transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.row .signal { transition: transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1); }
+
+@media (hover: hover) and (pointer: fine) {
+  .row:hover { background: transparent; }
+  .row:hover::before { transform: scaleX(1); }
+  .row:hover .row-main { transform: translateX(4px); }
+  .row:hover .row-time { transform: translateX(2px); }
+  .row:hover .row-open .flap { transform: translateY(-2px) scale(1.04); }
+  .row:hover .signal { transform: scale(1.25); }
+  .row:hover .aspect-open .lamp.g { animation-duration: 0.9s; }
+
+  /* chips and small buttons lift */
+  .qchip:hover, .near:hover, .chip-d:hover, .chip-f:hover, .pill:hover, .jump:hover, .rm-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgb(37 99 235 / 0.14); }
+  .seg button:hover { transform: translateY(-1px); }
+
+  /* cards lift with a yellow edge */
+  .teaser:hover, .next-up:hover, .counts div:hover, .left-toggle:hover, .trip:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgb(15 26 42 / 0.12), inset 0 -3px 0 var(--board); }
+  .counts div:hover dd { animation: pop 0.4s cubic-bezier(0.3, 1.6, 0.5, 1); }
+  .teaser:hover .dtile, .trip:hover .trip-day { animation: wiggle 0.5s ease-in-out; }
+
+  /* playful icon moves */
+  .swap:hover:not(:disabled) svg { transform: rotate(180deg); }
+  .swap svg, .sync-btn svg, .book-ico, .coffee-btn svg { transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
+  .sync-btn:hover:not(:disabled) svg { transform: rotate(180deg); }
+  .topbar-book:hover .book-ico, .topbar-book:hover svg { transform: rotate(-12deg) scale(1.15); }
+  .coffee-btn:hover svg { transform: rotate(-14deg) translateY(-1px); }
+  .topbar-book:hover { transform: translateY(-1px); }
+
+  /* tabs: hovering an unselected tab previews its rail */
+  .tabs [role="tab"]:not([aria-selected="true"])::after { content: ""; position: absolute; left: 0.6rem; right: 0.6rem; bottom: -2px; height: 3px; border-radius: 3px; background: var(--edge); transform: scaleX(0); transition: transform 0.25s ease; }
+  .tabs [role="tab"]:not([aria-selected="true"]):hover::after { transform: scaleX(1); }
+
+  /* FAQ: the question slides, the plus turns */
+  .faq-item summary span { transition: transform 0.25s ease; }
+  .faq-item summary:hover span { transform: translateX(4px); }
+  .faq-item:not([open]) summary:hover svg { transform: rotate(90deg); color: var(--accent); }
+  .faq-wrap > summary:hover { background: #fbfcff; }
+  .faq-wrap > summary:hover .faq-ico { animation: wiggle 0.5s ease-in-out; }
+
+  /* footer: links underline from the left, the train gives a little toot */
+  .site-foot .foot-col a { text-decoration: none; background: linear-gradient(var(--board), var(--board)) left bottom / 0 2px no-repeat; transition: background-size 0.3s ease; }
+  .site-foot .foot-col a:hover { background-size: 100% 2px; }
+  .foot-track:hover .foot-train .train-logo { animation: toot 0.6s ease-in-out; }
+}
+
+/* touch screens: everything answers the finger — a quick press-in and a warm flash */
+@media (hover: none), (pointer: coarse) {
+  .row:active::before { transform: scaleX(1); transition-duration: 0.12s; }
+  .row:active { transform: scale(0.985); }
+  .row:active .row-open .flap { transform: scale(1.05); }
+  .qchip:active, .near:active, .chip-d:active, .chip-f:active, .pill:active, .jump:active, .rm-btn:active, .seg button:active, .swap:active, .sync-btn:active, .topbar-book:active, .coffee-btn:active { transform: scale(0.94); }
+  .teaser:active, .next-up:active, .counts div:active, .left-toggle:active, .trip:active, .jb-summary:active, .faq-wrap > summary:active, .faq-item summary:active { transform: scale(0.97); box-shadow: inset 0 -3px 0 var(--board); }
+  .swap:active svg { transform: rotate(180deg); transition: transform 0.3s ease; }
+  .sync-btn:active svg { transform: rotate(120deg); transition: transform 0.3s ease; }
+  .tabs [role="tab"]:active { background: rgb(255 211 26 / 0.18); }
+}
+
+@keyframes pop { 40% { transform: scale(1.18); } 100% { transform: none; } }
+@keyframes wiggle { 25% { transform: rotate(-6deg); } 50% { transform: rotate(5deg); } 75% { transform: rotate(-2deg); } 100% { transform: none; } }
+@keyframes toot { 30% { transform: translateY(-3px) rotate(-2deg); } 60% { transform: translateY(0) rotate(1deg); } 100% { transform: none; } }
+.trip-day { display: inline-block; }
+.counts dd { display: block; transform-origin: left center; }
