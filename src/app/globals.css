@@ -627,3 +627,8 @@ body { font-size: 1rem; line-height: 1.5; background: var(--bg); }
 
 /* the one primary action keeps the accent */
 .go-btn { background: var(--accent); }
+/* primary action in the platform-board yellow */
+.go-btn { background: var(--board); color: var(--board-ink); border: 2px solid var(--board-ink); box-shadow: 0 3px 0 var(--board-ink), 0 10px 20px rgb(17 17 17 / 0.12); }
+.go-btn:hover { background: #ffdc45; transform: translateY(-1px); box-shadow: 0 4px 0 var(--board-ink), 0 14px 24px rgb(17 17 17 / 0.16); }
+.go-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--board-ink); }
+.go-btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
