@@ -17,7 +17,6 @@ interface Props {
   stops: TrainStop[];
   stationName: (code: string) => string;
   onToggle: (ti: number) => void;
-  onHover: (ti: number | null) => void;
 }
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -26,7 +25,7 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
  * A compact one-row summary (a real <button> using the disclosure pattern) that expands into
  * the full details: split-flap time, timeline, running days, stops and reminders.
  */
-function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle, onHover }: Props) {
+function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle }: Props) {
   const st = status(d, now);
   const detailsId = `train-${d.ti}`;
   const [shared, setShared] = useState<string | null>(null);
@@ -74,8 +73,6 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
     <article
       className={`card st-${st.kind}${open ? " on" : ""}${d.runs ? "" : " dim"}`}
       data-ti={d.ti}
-      onMouseEnter={() => onHover(d.ti)}
-      onMouseLeave={() => onHover(null)}
     >
       <button type="button" className="row" aria-expanded={open} aria-controls={detailsId} onClick={() => onToggle(d.ti)}>
         <span className="row-time">
@@ -145,16 +142,60 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
             <p className="remind-note">{st.kind === "open" ? "Current availability is open now. Book on IRCTC before the train departs." : "This train has left."}</p>
           )}
 
-          <div className="stops" aria-label={`${stops.length} stops in Tamil Nadu`}>
-            {stops.map((x) => (
-              <span key={x.station.code} className={x.station.code === here.code ? "me" : ""}>
-                {shortName(x.station.name)}<code>{clock(x.dep >= 0 ? x.dep : x.arr)}</code>
-              </span>
-            ))}
-          </div>
+          <RouteStops d={d} stops={stops} here={here} stationName={stationName} />
         </div>
       )}
     </article>
+  );
+}
+
+/**
+ * The train's route as a vertical line of stops (replaces the map): first station, the stops in
+ * Tamil Nadu, and the final destination, with the boarding station highlighted. Long routes collapse
+ * to the stops around the boarding station.
+ */
+function RouteStops({ d, stops, here, stationName }: { d: Departure; stops: TrainStop[]; here: Station; stationName: (c: string) => string }) {
+  const [all, setAll] = useState(false);
+  type Row = { code: string; name: string; time: string; role: "origin" | "dest" | "here" | "stop" | "outside" };
+  const rows: Row[] = [];
+  if (stops[0]?.station.code !== d.orig) rows.push({ code: d.orig, name: stationName(d.orig), time: clockAt(d.srcDep), role: "outside" });
+  stops.forEach((x, i) => {
+    const code = x.station.code;
+    rows.push({
+      code, name: shortName(x.station.name), time: clock(x.dep >= 0 ? x.dep : x.arr),
+      role: code === here.code ? "here" : i === 0 && code === d.orig ? "origin" : i === stops.length - 1 && code === d.dest ? "dest" : "stop",
+    });
+  });
+  if (stops[stops.length - 1]?.station.code !== d.dest && d.reach != null) rows.push({ code: d.dest, name: stationName(d.dest), time: clockAt(d.reach), role: "outside" });
+  const hi = rows.findIndex((r) => r.role === "here");
+  const short = rows.length > 7 && !all;
+  const keep = (i: number) => !short || i === 0 || i === rows.length - 1 || Math.abs(i - hi) <= 2;
+  let gap = false;
+  return (
+    <div className="route">
+      <ol className="route-list" aria-label={`Route: ${stationName(d.orig)} to ${stationName(d.dest)}, ${rows.length} stops listed`}>
+        {rows.map((r, i) => {
+          if (!keep(i)) {
+            if (gap) return null;
+            gap = true;
+            return <li key={`gap-${i}`} className="route-gap" aria-hidden="true">⋮</li>;
+          }
+          gap = false;
+          return (
+            <li key={`${r.code}-${i}`} className={`route-stop ${r.role}`}>
+              <span className="route-dot" aria-hidden="true" />
+              <span className="route-name">{r.name}{r.role === "here" && <span className="route-tag">you board here</span>}{r.role === "outside" && <span className="route-tag soft">outside TN</span>}</span>
+              <span className="route-time">{r.time}</span>
+            </li>
+          );
+        })}
+      </ol>
+      {rows.length > 7 && (
+        <button type="button" className="linkbtn" aria-expanded={all} onClick={() => setAll((v) => !v)}>
+          {all ? "Show fewer stops" : `Show all ${rows.length} stops`}
+        </button>
+      )}
+    </div>
   );
 }
 

@@ -13,7 +13,6 @@
     "check": "bun run typecheck && bun run lint && bun test && bun run build"
   },
   "dependencies": {
-    "maplibre-gl": "5",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"

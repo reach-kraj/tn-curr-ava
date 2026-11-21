@@ -1,6 +1,6 @@
 # TN Current Booking
 
-Pick any Tamil Nadu railway station on a map and see every train departing it, with the exact time
+Pick any Tamil Nadu railway station and see every train departing it, with the exact time
 **current booking** opens — worked out from when each train leaves its *source* station.
 
 Opens on Tambaram (TBM) by default. Example: 16103 Tambaram → Rameswaram leaves Tambaram at 6:10 PM, so at Chengalpattu current booking opens at **8:10 AM** (10-hour rule).
@@ -8,7 +8,7 @@ Opens on Tambaram (TBM) by default. Example: 16103 Tambaram → Rameswaram leave
 ## Stack
 
 - Next.js 16 (App Router) as a **static export** (`out/`) — no server code
-- MapLibre GL 3D map: OpenFreeMap vector tiles (OpenStreetMap), AWS Open Data terrain, 3D buildings, sky, animated clouds
+- No map: a fast, accessible two-column board (station summary + tabs); each train's route is shown as a list of stops
 - All booking maths runs in the browser, in IST
 - Reminders: Google Calendar link, `.ics` file with alarms (10 min before + at opening), share sheet
 - **Advance booking & festivals** tab: when booking opens (60 days before the source-station journey date, 8:00 AM IST; Tatkal the day before), plus Tamil Nadu holidays (G.O.(Ms.) No.613, 06.10.2026) grouped into long weekends with go/return booking dates and reminders

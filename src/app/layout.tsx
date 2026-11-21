@@ -20,6 +20,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable} ${mono.variable}`}>
+      <head>
+        {/* start downloading the timetable while the app code loads */}
+        <link rel="preload" href="/data/tn.json" as="fetch" crossOrigin="anonymous" />
+      </head>
       <body>{children}</body>
     </html>
   );

@@ -8,17 +8,6 @@ import { ARP_DAYS, advanceOpens, breaks, lastBookable, longWeekends, openState, 
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
 
-interface Props {
-  data: Dataset;
-  sel: Station;
-  now: number;
-  stationName: (code: string) => string;
-  onRoute: (ti: number | null) => void;
-  /** optional destination: only trains that go there */
-  to: string;
-  stopsOf: (ti: number) => TrainStop[];
-}
-
 const longDay = (day: string) => { const p = istParts(istInstant(day, 0)); return `${DOW[p.dow]} ${p.d} ${MON[p.m - 1]} ${p.y}`; };
 
 function stateText(s: OpenState) {
@@ -29,7 +18,7 @@ function stateText(s: OpenState) {
 }
 
 /** A small calendar-page tile for a date. */
-function DateTile({ day, big = false }: { day: string; big?: boolean }) {
+export function DateTile({ day, big = false }: { day: string; big?: boolean }) {
   const p = istParts(istInstant(day, 0));
   return (
     <span className={`dtile${big ? " big" : ""}`} aria-hidden="true">
@@ -40,12 +29,29 @@ function DateTile({ day, big = false }: { day: string; big?: boolean }) {
   );
 }
 
-export default function AdvancePlanner({ data, sel, now, stationName, onRoute, to, stopsOf }: Props) {
+function CalendarIcon() {
+  return <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>;
+}
+function AlarmIcon() {
+  return <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>;
+}
+
+/* ================= Advance booking ================= */
+
+interface PlannerProps {
+  data: Dataset;
+  sel: Station;
+  now: number;
+  stationName: (code: string) => string;
+  /** optional destination: only trains that go there */
+  to: string;
+  stopsOf: (ti: number) => TrainStop[];
+  journey: string;
+  setJourney: (day: string) => void;
+}
+
+export default function AdvancePlanner({ data, sel, now, stationName, to, stopsOf, journey, setJourney }: PlannerProps) {
   const today = todayIst(now);
-  const list = useMemo(() => breaks(HOLIDAYS, today), [today]);
-  const weekends = useMemo(() => longWeekends(list), [list]);
-  // default: the journey date whose booking opens today
-  const [journey, setJourney] = useState(() => lastBookable(today));
   const [ti, setTi] = useState<number | null>(null);
   const formId = useId();
 
@@ -60,6 +66,8 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute, t
   const state = openState(originDay, now, today);
   const st = stateText(state);
   const openDay = istDay(opens);
+  const todayJourney = lastBookable(today);
+  const todayOpened = now >= advanceOpens(todayJourney);
 
   const event = (): EventInput => ({
     uid: `arp-${chosen?.num ?? "any"}-${originDay}`,
@@ -73,47 +81,36 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute, t
     alarm: `Advance booking${chosen ? ` for ${chosen.num}` : ""} opens`,
   });
 
-  const todayOpened = now >= advanceOpens(lastBookable(today));
-
-  const pickTrain = (v: string) => {
-    const n = v === "" ? null : Number(v);
-    setTi(n);
-    onRoute(n);
-  };
-  const plan = (day: string) => {
-    setJourney(day); setTi(null); onRoute(null);
-    document.getElementById(`${formId}-train`)?.focus({ preventScroll: true });
-    document.getElementById(`${formId}-result`)?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  };
-
   return (
     <div className="adv">
       <section className="today-card" aria-label="Opening today">
-        <DateTile day={lastBookable(today)} big />
+        <DateTile day={todayJourney} big />
         <div className="today-text">
           <span className="today-k">Today · {dayLabel(today)}</span>
-          <b>Booking opens for journeys on {longDay(lastBookable(today))}</b>
+          <b>Booking opens for journeys on {longDay(todayJourney)}</b>
           <span className="today-time">
-            8:00 AM IST · <span className={todayOpened ? "open" : "soon"}>{todayOpened ? "open now" : `in ${duration(advanceOpens(lastBookable(today)) - now)}`}</span>
+            8:00 AM IST · <span className={todayOpened ? "open" : "soon"}>{todayOpened ? "open now" : `in ${duration(advanceOpens(todayJourney) - now)}`}</span>
           </span>
           <span className="today-next">Tomorrow 8:00 AM: journeys on {longDay(lastBookable(addDays(today, 1)))}</span>
         </div>
-        <button type="button" className="today-plan" onClick={() => plan(lastBookable(today))}>Pick a train</button>
+        {journey !== todayJourney && (
+          <button type="button" className="today-plan" onClick={() => { setJourney(todayJourney); setTi(null); }}>Check this date</button>
+        )}
       </section>
-      <p className="adv-window">
-        Rule: booking opens <b>{ARP_DAYS} days</b> before the journey date (the day the train leaves its first station), at <b>8:00 AM IST</b>.
-      </p>
 
       <section className="planner" aria-labelledby={`${formId}-h`}>
-        <h3 id={`${formId}-h`}>When can I book?</h3>
+        <div className="planner-top">
+          <h3 id={`${formId}-h`}>When can I book?</h3>
+          <p className="planner-rule">{ARP_DAYS} days before the journey date, 8:00 AM IST</p>
+        </div>
         <div className="planner-form">
           <label htmlFor={`${formId}-date`}>
             <span>Journey date from {shortName(sel.name)}</span>
-            <input id={`${formId}-date`} type="date" value={journey} min={today} onChange={(e) => { if (e.target.value) { setJourney(e.target.value); setTi(null); onRoute(null); } }} />
+            <input id={`${formId}-date`} type="date" value={journey} min={today} onChange={(e) => { if (e.target.value) { setJourney(e.target.value); setTi(null); } }} />
           </label>
           <label htmlFor={`${formId}-train`}>
             <span>Train{to ? ` to ${shortName(stationName(to))}` : ""} (optional)</span>
-            <select id={`${formId}-train`} value={ti ?? ""} onChange={(e) => pickTrain(e.target.value)}>
+            <select id={`${formId}-train`} value={ti ?? ""} onChange={(e) => setTi(e.target.value === "" ? null : Number(e.target.value))}>
               <option value="">{trains.length ? "Any train starting that day" : to ? `No train to ${shortName(stationName(to))} that day` : "No reserved train that day"}</option>
               {trains.map((d) => (
                 <option key={d.ti} value={d.ti}>{clock(d.dep)} · {d.num} {d.name} · {shortName(stationName(d.orig))} → {shortName(stationName(d.dest))}</option>
@@ -122,7 +119,7 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute, t
           </label>
         </div>
 
-        <div className="planner-result" id={`${formId}-result`} aria-live="polite">
+        <div className="planner-result" aria-live="polite">
           <DateTile day={openDay} big />
           <div className="pr-text">
             <span className="pr-k">Advance booking opens</span>
@@ -132,12 +129,13 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute, t
           </div>
         </div>
 
-        {chosen && chosen.originDay !== journey && (
+        {chosen && chosen.originDay !== journey ? (
           <p className="pr-note">
             {chosen.num} leaves {shortName(stationName(chosen.orig))} on <b>{dayLabel(chosen.originDay)}</b> at {clockAt(chosen.srcDep)}. Booking follows the day the train starts, so it opens a day earlier than you might expect.
           </p>
-        )}
-        {!chosen && <p className="pr-note">Choose a train to be exact: a train you board after midnight follows the day it left its first station.</p>}
+        ) : !chosen ? (
+          <p className="pr-note">Choose a train to be exact: a train you board after midnight follows the day it left its first station.</p>
+        ) : null}
 
         <dl className="pr-facts">
           <div><dt>Tatkal (AC)</dt><dd>{dayLabel(istDay(tatkalOpens(originDay, true)))} · 10:00 AM</dd></div>
@@ -149,29 +147,41 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute, t
             <span className="remind-k">Remind me when booking opens</span>
             <div className="remind-row">
               <a className="rbtn" href={eventGoogleUrl(event())} target="_blank" rel="noreferrer">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
-                Google Calendar<span className="sr-only"> (opens in a new tab)</span>
+                <CalendarIcon />Google Calendar<span className="sr-only"> (opens in a new tab)</span>
               </a>
               <button type="button" className="rbtn" onClick={() => downloadIcs(eventIcs(event()), `advance-booking-${chosen?.num ?? "trip"}-${journey}.ics`)}>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="13" r="8" /><path d="M12 9v4l2 2M5 3 2 6M22 6l-3-3" /></svg>
-                Phone alarm
+                <AlarmIcon />Phone alarm
               </button>
             </div>
           </div>
         )}
       </section>
+    </div>
+  );
+}
 
-      <section className="lw" aria-labelledby={`${formId}-lh`}>
-        <h3 className="sec-h" id={`${formId}-lh`}><span>Long weekends</span><small>go the day before · return next morning</small><b>{weekends.length}</b></h3>
+/* ================= Holidays & long weekends ================= */
+
+export function HolidaysView({ now, onPlan, planned }: { now: number; onPlan: (day: string) => void; planned: string }) {
+  const today = todayIst(now);
+  const list = useMemo(() => breaks(HOLIDAYS, today), [today]);
+  const weekends = useMemo(() => longWeekends(list), [list]);
+  const id = useId();
+  return (
+    <div className="hol">
+      <p className="hol-intro">Tap <b>Go</b> or <b>Return</b> to see exactly when booking opens for that day and train.</p>
+
+      <section className="lw" aria-labelledby={`${id}-lh`}>
+        <h3 className="sec-h" id={`${id}-lh`}><span>Long weekends</span><small>go the day before · return next morning</small><b>{weekends.length}</b></h3>
         <ul className="lw-list">
-          {weekends.map((w) => <LongWeekendRow key={`${w.start}|${w.end}`} w={w} now={now} today={today} onPlan={plan} active={journey === w.go || journey === w.back} />)}
+          {weekends.map((w) => <LongWeekendRow key={`${w.start}|${w.end}`} w={w} now={now} today={today} onPlan={onPlan} active={planned === w.go || planned === w.back} />)}
         </ul>
       </section>
 
-      <section className="fest" aria-labelledby={`${formId}-fh`}>
-        <h3 className="sec-h" id={`${formId}-fh`}><span>Festivals &amp; holidays</span><small>Tamil Nadu · long weekends</small><b>{list.length}</b></h3>
+      <section className="fest" aria-labelledby={`${id}-fh`}>
+        <h3 className="sec-h" id={`${id}-fh`}><span>Festivals &amp; holidays</span><small>Tamil Nadu</small><b>{list.length}</b></h3>
         <ul className="fest-list">
-          {list.map((b) => <FestRow key={b.start} b={b} now={now} today={today} onPlan={plan} active={journey === b.go || journey === b.back} />)}
+          {list.map((b) => <FestRow key={b.start} b={b} now={now} today={today} onPlan={onPlan} active={planned === b.go || planned === b.back || planned === b.after} />)}
         </ul>
         <p className="fest-src">Dates: {HOLIDAY_SOURCE}. Weekends count as days off (state offices close on all Saturdays and Sundays). Islamic festival dates depend on the moon. Bhogi is a travel day, not a public holiday.</p>
       </section>
@@ -184,7 +194,7 @@ function TripButton({ kind, hint, day, now, today, onPlan }: { kind: string; hin
   const opensOn = istDay(advanceOpens(day));
   return (
     <button type="button" className="trip" onClick={() => onPlan(day)}
-      aria-label={`${kind} ${hint} on ${longDay(day)}. ${st.cls === "open" ? "Booking is open" : `Booking opens ${longDay(opensOn)} at 8 AM`}. Plan this.`}>
+      aria-label={`${kind} ${hint} on ${longDay(day)}. ${st.cls === "open" ? "Booking is open" : `Booking opens ${longDay(opensOn)} at 8 AM`}. Check trains.`}>
       <span className="trip-k">{kind} <small>{hint}</small></span>
       <span className="trip-day">{dayLabel(day)}</span>
       <span className={`trip-s ${st.cls}`}>{st.cls === "open" ? "booking open" : `books ${dayLabel(opensOn)}`}</span>
@@ -194,7 +204,6 @@ function TripButton({ kind, hint, day, now, today, onPlan }: { kind: string; hin
 
 function LongWeekendRow({ w, now, today, onPlan, active }: { w: LongWeekend; now: number; today: string; onPlan: (d: string) => void; active: boolean }) {
   const inDays = dayDiff(today, w.start);
-  // one cell per day: holiday, weekend, or the leave day
   const cells: { day: string; kind: "leave" | "off" }[] = [];
   for (let d = w.start; d <= w.end; d = addDays(d, 1)) cells.push({ day: d, kind: d === w.leaveDay ? "leave" : "off" });
   return (
@@ -209,15 +218,11 @@ function LongWeekendRow({ w, now, today, onPlan, active }: { w: LongWeekend; now
       <ol className="lw-strip" aria-label={`Days off: ${cells.map((c) => `${dayLabel(c.day)}${c.kind === "leave" ? " (take leave)" : ""}`).join(", ")}`}>
         {cells.map((c) => {
           const p = istParts(istInstant(c.day, 0));
-          return (
-            <li key={c.day} className={c.kind} aria-hidden="true">
-              <span>{DOW[p.dow].slice(0, 2)}</span><b>{p.d}</b>
-            </li>
-          );
+          return <li key={c.day} className={c.kind} aria-hidden="true"><span>{DOW[p.dow].slice(0, 2)}</span><b>{p.d}</b></li>;
         })}
       </ol>
       {w.leaveDay && <p className="lw-leave"><span className="leave-badge">+1 leave</span> Take <b>{dayLabel(w.leaveDay)}</b> off to get all {w.days} days.</p>}
-      <div className="fest-trips lw-trips" role="group" aria-label={`Travel for the ${w.days}-day weekend`}>
+      <div className="trips two" role="group" aria-label={`Travel for the ${w.days}-day weekend`}>
         <TripButton kind="Go" hint="day before" day={w.go} now={now} today={today} onPlan={onPlan} />
         <TripButton kind="Return" hint="next morning" day={w.back} now={now} today={today} onPlan={onPlan} />
       </div>
@@ -241,7 +246,7 @@ function FestRow({ b, now, today, onPlan, active }: { b: Break; now: number; tod
           <span className="fest-in">{inDays === 0 ? "today" : `in ${inDays} days`}</span>
         </span>
         {extra.length > 0 && <span className="fest-extra">{extra.map((h) => `${h.name} ${dayLabel(h.date)}`).join(" · ")}</span>}
-        <div className="fest-trips" role="group" aria-label={`Travel options for ${pub[0]?.name ?? "this holiday"}`}>
+        <div className="trips" role="group" aria-label={`Travel options for ${pub[0]?.name ?? "this holiday"}`}>
           <TripButton kind="Go" hint="day before" day={b.go} now={now} today={today} onPlan={onPlan} />
           <TripButton kind="Return" hint={b.days === 1 ? "same day" : "last day"} day={b.back} now={now} today={today} onPlan={onPlan} />
           <TripButton kind="Return" hint="day after" day={b.after} now={now} today={today} onPlan={onPlan} />
@@ -249,13 +254,8 @@ function FestRow({ b, now, today, onPlan, active }: { b: Break; now: number; tod
         {b.leave.map((l) => (
           <div key={l.day} className="leave-tip">
             <span className="leave-badge">+1 leave</span>
-            <span className="leave-text">
-              Take <b>{dayLabel(l.day)}</b> off and get <b>{l.days} days</b>: {dayLabel(l.start)} – {dayLabel(l.end)}
-            </span>
-            <button type="button" className="linkbtn" onClick={() => onPlan(addDays(l.start, -1))}
-              aria-label={`Plan going on ${longDay(addDays(l.start, -1))} for the ${l.days}-day break`}>
-              Go {dayLabel(addDays(l.start, -1))}
-            </button>
+            <span className="leave-text">Take <b>{dayLabel(l.day)}</b> off and get <b>{l.days} days</b>: {dayLabel(l.start)} – {dayLabel(l.end)}</span>
+            <button type="button" className="linkbtn" onClick={() => onPlan(addDays(l.start, -1))}>Go {dayLabel(addDays(l.start, -1))}</button>
           </div>
         ))}
       </div>
