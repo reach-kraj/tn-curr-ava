@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tn-curr-ava",
+  "compatibility_date": "2026-08-01",
+  // Static site only: serve the Next.js export, no Worker code.
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  }
+}

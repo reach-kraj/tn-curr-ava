@@ -46,3 +46,9 @@ next-env.d.ts
 .eslintcache
 .turbo
 .swc
+
+# data build cache
+/.cache/
+
+# cloudflare
+.wrangler/
