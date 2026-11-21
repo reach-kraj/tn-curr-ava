@@ -57,12 +57,12 @@ export default function SyncButton({ data, onData, className = "" }: { data: Dat
   return (
     <div className={`sync ${className}`}>
       <span className="sync-label" aria-live="polite">
-        {state.kind === "idle" && <>Timetable · <b>{feedDate(data.feed)}</b></>}
+        {state.kind === "idle" && <span className="sync-idle">Timetable · <b>{feedDate(data.feed)}</b></span>}
         {state.kind === "busy" && <>{state.step}{state.pct != null ? ` · ${state.pct}%` : "…"}</>}
         {state.kind === "ok" && <span className="sync-ok">{state.text}</span>}
         {state.kind === "err" && <span className="sync-err">{state.text}</span>}
       </span>
-      <button type="button" className="sync-btn" onClick={sync} disabled={busy} aria-label="Sync with the latest train timetable">
+      <button type="button" className="sync-btn" onClick={sync} disabled={busy} aria-label={`Sync with the latest train timetable (current: ${feedDate(data.feed)})`} title={`Timetable: ${feedDate(data.feed)}. Check for a newer one`}>
         <svg className={busy ? "spin" : ""} viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 12a9 9 0 0 1-15.5 6.2M3 12A9 9 0 0 1 18.5 5.8" /><path d="M21 4v5h-5M3 20v-5h5" />
         </svg>
