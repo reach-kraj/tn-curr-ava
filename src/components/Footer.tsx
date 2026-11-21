@@ -24,7 +24,7 @@ export default function Footer({ feed, stations }: { feed: string; stations: num
           <span className="buffer-stop" />
           <span className="foot-consist">
             <TrainLogo height={30} />
-            <Coach /><Coach />
+            <Coach /><Coach /><Coach /><Coach /><Coach />
           </span>
         </div>
       </div>
