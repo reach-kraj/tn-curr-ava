@@ -1,5 +1,5 @@
 /**
- * Reminder links for "current booking opens" — no accounts or APIs needed:
+ * Reminder links for "current availability opens" — no accounts or APIs needed:
  *  - Google Calendar: pre-filled event via the public TEMPLATE URL
  *  - .ics file: opens in the phone's calendar with two alarms (10 min before, and at opening)
  *  - plain text for the share sheet
@@ -23,9 +23,9 @@ export function icsStamp(ms: number): string {
 }
 
 export function reminderText({ d, boardAt, sourceName, destName, url }: ReminderInput) {
-  const title = `Current booking opens · ${d.num} ${d.name}`;
+  const title = `Current availability opens · ${d.num} ${d.name}`;
   const lines = [
-    `Current booking for ${d.num} ${d.name} (${sourceName} → ${destName}) opens at ${clockAt(d.opens)}, ${dayLabel(istDay(d.opens))} (IST).`,
+    `Current availability for ${d.num} ${d.name} (${sourceName} → ${destName}) opens at ${clockAt(d.opens)}, ${dayLabel(istDay(d.opens))} (IST).`,
     `Boarding at ${shortName(boardAt)}: departs ${clock(d.dep)}, ${dayLabel(istDay(d.hereDep))}.`,
     `Train leaves ${shortName(sourceName)} at ${clockAt(d.srcDep)}.`,
     `Book: ${IRCTC}`,
@@ -66,7 +66,7 @@ export function icsFile(r: ReminderInput, now = Date.now()): string {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//TN Current Booking//EN",
+    "PRODID:-//TN Current Availability//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
@@ -84,6 +84,6 @@ export function icsFile(r: ReminderInput, now = Date.now()): string {
     "END:VCALENDAR",
   ].map(fold).join("\r\n") + "\r\n";
 }
-const d2 = (r: ReminderInput) => `Current booking for ${r.d.num}`;
+const d2 = (r: ReminderInput) => `Current availability for ${r.d.num}`;
 
-export const icsFileName = (r: ReminderInput) => `current-booking-${r.d.num}-${istDay(r.d.opens)}.ics`;
+export const icsFileName = (r: ReminderInput) => `current-availability-${r.d.num}-${istDay(r.d.opens)}.ics`;

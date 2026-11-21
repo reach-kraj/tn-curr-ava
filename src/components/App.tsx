@@ -8,7 +8,7 @@ import FlapTime from "./FlapTime";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
-  RULES, addDays, clockAt, dayLabel, departures, shortName, status, toStations, todayIst, type Rule,
+  RULES, addDays, clock, clockAt, dayLabel, departures, duration, shortName, status, toStations, todayIst, type Rule,
 } from "@/lib/booking";
 import {
   DAYPARTS, KINDS, NO_FILTERS, activeCount, applyBoardFilters, onwardCodes, sections, trainKind,
@@ -145,7 +145,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const rows = useMemo(() => applyBoardFilters(allRows, bf, now, (ti) => trainStops[ti]), [allRows, bf, now, trainStops]);
   const secs = useMemo(() => sections(rows, sort, now), [rows, sort, now]);
   const openNow = allRows.filter((r) => status(r, now).kind === "open").length;
-  const next = allRows.filter((r) => r.opens > now).sort((a, b) => a.opens - b.opens)[0];
+  const next = rows.filter((r) => r.opens > now).sort((a, b) => a.opens - b.opens)[0];
   const destinations = useMemo(() => {
     const count = new Map<string, number>();
     for (const d of allRows) for (const c of onwardCodes(d, trainStops[d.ti])) count.set(c, (count.get(c) ?? 0) + 1);
@@ -157,6 +157,13 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
   const toggleIn = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const routeTi = hoverTi ?? openTi;
   const route = useMemo(() => (routeTi == null ? null : trainStops[routeTi].map((x) => x.station)), [routeTi, trainStops]);
+  const showTrain = (ti: number) => {
+    setOpenTi(ti);
+    if (mobile) setSheet("full");
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      listRef.current?.querySelector<HTMLElement>(`[data-ti="${ti}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
+    }));
+  };
   const toggle = useCallback((ti: number) => {
     setOpenTi((o) => (o === ti ? null : ti));
     setHoverTi(null);
@@ -221,8 +228,8 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       />
 
       <header className="brand">
-        <span className="eyebrow-tag"><i />Tamil Nadu · Current booking</span>
-        <h1>Pick a station. See when current booking opens for every train.</h1>
+        <span className="eyebrow-tag"><i />Tamil Nadu · Current availability</span>
+        <h1>Pick a station. See when current availability opens for every train.</h1>
         <StationSearch stations={stations} onPick={(s) => selectStation(s, true)} />
         <SyncButton data={data} onData={onData} className="sync-brand" />
       </header>
@@ -274,18 +281,27 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
           <div className="head">
             <div className="head-a">
             <div className="nameboard" aria-live="polite" onClick={() => mobile && setSheet((s) => (s === "peek" ? "half" : s))}>
-              <div className="nameboard-top"><span>{sel.code}</span><span>{sel.n} trains stop</span></div>
+              <div className="nameboard-top">
+                <span>{sel.code}</span>
+                <span className="nb-counts"><span>{allRows.length} departing</span><span>{openNow} open now</span></span>
+              </div>
               <h2>{shortName(sel.name)}</h2>
             </div>
 
-            <div className="stats">
-              <div className="stat"><b>{allRows.length}</b><span>departing</span></div>
-              <div className="stat"><b className="ok">{openNow}</b><span>open now</span></div>
-              <div className="stat stat-next">
-                {next ? <FlapTime value={clockAt(next.opens)} /> : <b>—</b>}
-                <span>{next ? `next opens · ${next.num}` : "nothing left to open"}</span>
-              </div>
-            </div>
+            {next ? (
+              <button type="button" className="next-up" onClick={() => showTrain(next.ti)}
+                aria-label={`Next to open: ${next.num} ${next.name}, ${stationName(next.orig)} to ${stationName(next.dest)}. Current availability opens at ${clockAt(next.opens)}, in ${duration(next.opens - now)}. Show details.`}>
+                <span className="next-k">Next to open<small>in {duration(next.opens - now)}</small></span>
+                <FlapTime value={clockAt(next.opens)} />
+                <span className="next-train">
+                  <b><span>{next.name}</span><span className="tnum">{next.num}</span></b>
+                  <span className="next-route">{shortName(stationName(next.orig))} → {shortName(stationName(next.dest))}</span>
+                  <small>departs {shortName(sel.name)} {clock(next.dep)}</small>
+                </span>
+              </button>
+            ) : (
+              <p className="next-none">No more trains open for current availability on this date.</p>
+            )}
             </div>
 
             <div className="head-b">
@@ -300,7 +316,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                 onClick={() => setOptionsOpen((o) => { store.set("tn.options", o ? "0" : "1"); return !o; })}>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" /></svg>
                 <span>Options</span>
-                <span className="opt-sub">{RULES[rule].label}{sort === "opens" ? " · by booking" : ""}</span>
+                <span className="opt-sub">{RULES[rule].label}{sort === "opens" ? " · by opening" : ""}</span>
                 {nOpt > 0 && <b aria-label={`${nOpt} active`}>{nOpt}</b>}
                 <svg className="chev" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
               </button>
@@ -327,11 +343,11 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
                   <span className="flabel" id="sort-label">Sort</span>
                   <div className="seg seg-sm" role="group" aria-labelledby="sort-label">
                     <button type="button" aria-pressed={sort === "dep"} onClick={() => setSort("dep")}>By departure</button>
-                    <button type="button" aria-pressed={sort === "opens"} onClick={() => setSort("opens")}>By booking</button>
+                    <button type="button" aria-pressed={sort === "opens"} onClick={() => setSort("opens")}>By opening time</button>
                   </div>
                 </div>
                 <div className="frow">
-                  <span className="flabel">Booking</span>
+                  <span className="flabel">Availability</span>
                   <div className="chips">
                     {([["all", "All"], ["upcoming", "Not departed"], ["soon", "Opening soon"], ["open", "Open now"]] as [StatusFilter, string][]).map(([v, l]) => (
                       <button key={v} type="button" className="chip-f" aria-pressed={bf.status === v} onClick={() => setBf((f) => ({ ...f, status: v }))}>{l}</button>
@@ -398,7 +414,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
             ) : (
               secs.map((sec) => (
                 <section key={sec.id} className="sec" aria-label={`${sec.title}, ${sec.rows.length} trains`}>
-                  <h3 className="sec-h"><span>{sec.title}</span><small>{sec.sub}</small><b>{sec.rows.length}</b></h3>
+                  <h3 className="sec-h"><span>{sec.title}</span><small>{sec.sub}</small><span className="sec-col" aria-hidden="true">Current availability opens</span><b>{sec.rows.length}</b></h3>
                   <div className="sec-grid">
                     {sec.rows.map((d) => (
                       <Fragment key={d.ti}>

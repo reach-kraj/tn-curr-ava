@@ -59,12 +59,12 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
     setTimeout(() => setShared(null), 2000);
   };
 
-  const chipText = st.kind === "soon" ? `In ${duration(st.ms)}` : st.kind === "open" ? "Open now" : "Departed";
-  const chipLong = st.kind === "soon" ? `Booking opens in ${duration(st.ms)}` : st.kind === "open" ? "Current booking is open" : "Train has departed";
+  const chipText = st.kind === "soon" ? `in ${duration(st.ms)}` : st.kind === "open" ? "Open now" : "Departed";
+  const chipLong = st.kind === "soon" ? `Current availability opens in ${duration(st.ms)}` : st.kind === "open" ? "Current availability is open" : "Train has departed";
   const opensTag = tag(d.opens);
 
   const steps = [
-    { cls: "is-open", t: clockAt(d.opens), s: "Booking opens", sub: opensTag },
+    { cls: "is-open", t: clockAt(d.opens), s: "Current availability opens", sub: opensTag },
     ...(d.startsHere ? [] : [{ cls: "", t: clockAt(d.srcDep), s: `Leaves ${shortName(stationName(d.orig))}`, sub: tag(d.srcDep) }]),
     { cls: "is-here", t: clock(d.dep), s: `Departs ${shortName(here.name)}`, sub: "" },
     ...(d.reach != null ? [{ cls: "", t: clockAt(d.reach), s: `Reaches ${shortName(stationName(d.dest))}`, sub: tag(d.reach) }] : []),
@@ -80,18 +80,25 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
       <button type="button" className="row" aria-expanded={open} aria-controls={detailsId} onClick={() => onToggle(d.ti)}>
         <span className="row-time">
           <b>{clock(d.dep)}</b>
-          <small>{d.startsHere ? "starts" : "departs"}</small>
+          <small>{d.startsHere ? "starts here" : "departs"}</small>
         </span>
         <span className="row-main">
-          <span className="tname">{d.name}</span>
-          <small className="row-route"><span className="num">{d.num}</span> {shortName(stationName(d.orig))} → {shortName(stationName(d.dest))}{!d.runs && " · not running"}</small>
+          <span className="row-name"><span className="tname">{d.name}</span><span className="tnum">{d.num}</span></span>
+          <span className="row-route">
+            <span>{shortName(stationName(d.orig))}</span>
+            <svg viewBox="0 0 20 8" width="18" height="8" aria-hidden="true"><path d="M1 4h16m-4-3 4 3-4 3" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span>{shortName(stationName(d.dest))}</span>
+            {!d.runs && <em> · not running this date</em>}
+          </span>
         </span>
         <span className="row-open">
-          <small>Booking opens</small>
-          <b>{clockAt(d.opens)}</b>
-          <small className="row-opens-day">{opensTag || "same day"}</small>
+          <span className="sr-only">Current availability opens at</span>
+          <FlapTime value={clockAt(d.opens)} size="sm" />
+          <small className={`row-status ${st.kind}`} title={chipLong}>
+            <span className="sr-only">{chipLong}{opensTag ? `, opens ${opensTag}` : ""}</span>
+            <span aria-hidden="true">{chipText}{opensTag && st.kind !== "gone" ? <span className="row-day"> · {opensTag}</span> : null}</span>
+          </small>
         </span>
-        <span className={`chip ${st.kind}`} title={chipLong}><span className="sr-only">{chipLong}</span><span aria-hidden="true">{chipText}</span></span>
         <svg className="chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
       </button>
 
@@ -99,7 +106,7 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
         <div className="details" id={detailsId}>
           <div className="board">
             <div>
-              <div className="board-k">Current booking opens</div>
+              <div className="board-k">Current availability opens</div>
               <div className="board-sub">{relDay(d.opens, travelDay)} · {dayLabel(istDay(d.opens))}</div>
             </div>
             <FlapTime value={clockAt(d.opens)} />
@@ -125,7 +132,7 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
 
           {st.kind === "soon" ? (
             <div className="remind">
-              <span className="remind-k">Remind me when booking opens</span>
+              <span className="remind-k">Remind me when current availability opens</span>
               <div className="remind-row">
                 <a className="rbtn" href={googleCalendarUrl(reminder())} target="_blank" rel="noreferrer">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
@@ -140,10 +147,10 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
                   <span aria-live="polite">{shared ?? "Share"}</span>
                 </button>
               </div>
-              <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when booking opens.</span>
+              <span className="remind-note">Phone alarm adds a calendar event that alerts 10 min before and when current availability opens.</span>
             </div>
           ) : (
-            <p className="remind-note">{st.kind === "open" ? "Current booking is open now. Book on IRCTC before the train departs." : "This train has left."}</p>
+            <p className="remind-note">{st.kind === "open" ? "Current availability is open now. Book on IRCTC before the train departs." : "This train has left."}</p>
           )}
 
           <div className="stops" aria-label={`${stops.length} stops in Tamil Nadu`}>

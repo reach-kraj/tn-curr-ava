@@ -74,8 +74,8 @@ export function sections(rows: Departure[], sort: SortBy, now: number): Section[
     groups.open.sort((a, b) => a.hereDep - b.hereDep);
     groups.gone.sort((a, b) => b.hereDep - a.hereDep);
     return [
-      { id: "soon", title: "Opening soon", sub: "soonest first", rows: groups.soon },
-      { id: "open", title: "Open now", sub: "book before departure", rows: groups.open },
+      { id: "soon", title: "Opening soon", sub: "current availability, soonest first", rows: groups.soon },
+      { id: "open", title: "Open now", sub: "book before the train departs", rows: groups.open },
       { id: "gone", title: "Departed", sub: "most recent first", rows: groups.gone },
     ].filter((s) => s.rows.length);
   }

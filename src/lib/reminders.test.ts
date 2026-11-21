@@ -14,7 +14,7 @@ test("8:10 AM IST is 02:40 UTC", () => {
 
 test("reminder text names train, times and station", () => {
   const { title, body } = reminderText(input);
-  expect(title).toBe("Current booking opens · 16103 TBM RMM EXP");
+  expect(title).toBe("Current availability opens · 16103 TBM RMM EXP");
   expect(body).toContain("opens at 8:10 AM, Sat 21 Nov (IST)");
   expect(body).toContain("Boarding at Chengalpattu: departs 6:40 PM");
 });

@@ -1,5 +1,5 @@
 /** A departure-board style split-flap readout. Each character re-flips when it changes. */
-export default function FlapTime({ value, size = "md" }: { value: string; size?: "md" | "lg" }) {
+export default function FlapTime({ value, size = "md" }: { value: string; size?: "sm" | "md" | "lg" }) {
   return (
     <span className={`flap flap-${size}`} aria-label={value}>
       {value.split("").map((ch, i) =>

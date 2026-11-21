@@ -59,7 +59,7 @@ describe("helpers", () => {
 });
 
 describe("departures (real data)", () => {
-  test("16103 at Chengalpattu: leaves Tambaram 6:10 PM, booking opens 8:10 AM", () => {
+  test("16103 at Chengalpattu: leaves Tambaram 6:10 PM, current availability opens 8:10 AM", () => {
     const rows = departures(data, "CGL", "2026-11-21", "10", { ...all, query: "16103" });
     expect(rows).toHaveLength(1);
     const r = rows[0];

@@ -7,8 +7,8 @@ const body = Inter({ subsets: ["latin"], variable: "--font-body" });
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weight: ["500", "600", "700"] });
 
 export const metadata: Metadata = {
-  title: "TN Current Booking",
-  description: "Tap any Tamil Nadu railway station to see every train departing it and exactly when its current booking opens.",
+  title: "TN Current Availability",
+  description: "Tap any Tamil Nadu railway station to see every train departing it and exactly when its current availability opens.",
 };
 
 export const viewport: Viewport = {
