@@ -88,6 +88,12 @@ function TrainCard({ d, here, travelDay, now, open, stops, stationName, onToggle
             <span>{shortName(stationName(d.dest))}</span>
             {!d.runs && <em> · not running this date</em>}
           </span>
+          {istDay(d.srcDep) !== travelDay && (
+            <span className="row-start">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+              Starts {dayLabel(istDay(d.srcDep))}, {clockAt(d.srcDep)} from {shortName(stationName(d.orig))}
+            </span>
+          )}
         </span>
         <span className="row-open">
           <span className="sr-only">Current availability opens {dayWord(d.opens, now)} at {clockAt(d.opens)}.</span>
