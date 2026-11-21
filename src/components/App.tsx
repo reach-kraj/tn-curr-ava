@@ -74,7 +74,7 @@ function Explorer({ data }: { data: Dataset }) {
 
   const mobile = useIsMobile();
   const vh = useViewportHeight();
-  const [selCode, setSelCode] = useState("CGL");
+  const [selCode, setSelCode] = useState("TBM");
   const [travelDay, setTravelDay] = useState(() => todayIst());
   const [rule, setRule] = useState<Rule>("10");
   const [query, setQuery] = useState("");

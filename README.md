@@ -3,7 +3,7 @@
 Pick any Tamil Nadu railway station on a map and see every train departing it, with the exact time
 **current booking** opens — worked out from when each train leaves its *source* station.
 
-Example: 16103 Tambaram → Rameswaram leaves Tambaram at 6:10 PM, so at Chengalpattu current booking opens at **8:10 AM** (10-hour rule).
+Opens on Tambaram (TBM) by default. Example: 16103 Tambaram → Rameswaram leaves Tambaram at 6:10 PM, so at Chengalpattu current booking opens at **8:10 AM** (10-hour rule).
 
 ## Stack
 

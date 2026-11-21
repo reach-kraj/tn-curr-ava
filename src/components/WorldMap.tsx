@@ -162,10 +162,10 @@ export default function WorldMap({ data, stations, selected, route, fitRouteKey,
         m.addLayer({
           id: "stn", type: "circle", source: "stations",
           paint: {
-            "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, ["case", ["==", ["get", "major"], 1], 4.2, 2.2], 10, ["case", ["==", ["get", "major"], 1], 8, 5], 14, ["case", ["==", ["get", "major"], 1], 11, 8]],
+            "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, ["case", ["==", ["get", "major"], 1], 4.2, 1.3], 10, ["case", ["==", ["get", "major"], 1], 8, 2.8], 14, ["case", ["==", ["get", "major"], 1], 11, 5]],
             "circle-color": ["case", ["boolean", ["feature-state", "hover"], false], C.accent, ["==", ["get", "major"], 1], "#ffffff", C.track],
             "circle-stroke-color": ["case", ["==", ["get", "major"], 1], C.track, "#ffffff"],
-            "circle-stroke-width": ["case", ["==", ["get", "major"], 1], 1.8, 1.2],
+            "circle-stroke-width": ["case", ["==", ["get", "major"], 1], 1.8, 0.7],
             "circle-pitch-alignment": "map",
           },
         });
@@ -174,7 +174,7 @@ export default function WorldMap({ data, stations, selected, route, fitRouteKey,
           layout: {
             "text-field": ["get", "name"],
             "text-font": ["Noto Sans Bold"],
-            "text-size": ["interpolate", ["linear"], ["zoom"], 5, ["case", ["==", ["get", "major"], 1], 11.5, 10], 12, ["case", ["==", ["get", "major"], 1], 15, 13]],
+            "text-size": ["interpolate", ["linear"], ["zoom"], 5, ["case", ["==", ["get", "major"], 1], 11.5, 9], 12, ["case", ["==", ["get", "major"], 1], 15, 11.5]],
             "text-variable-anchor": ["left", "right", "top", "bottom"],
             "text-radial-offset": 0.9,
             "text-justify": "auto",
