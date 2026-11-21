@@ -38,3 +38,8 @@ Opens on Tambaram (TBM) by default. Example: 16103 Tambaram → Rameswaram leave
 
 Times are scheduled, not live. EMU/MEMU/DEMU/passenger trains (numbers starting 4–7) are unreserved.
 The booking rule (10 h default, 8 h reported 2025 rule, 4 h) is selectable in the UI.
+
+## Deploy settings
+
+- Build variable `NEXT_PUBLIC_SITE_URL` = the live address (e.g. `https://your-domain`), used for canonical links, the sitemap and share previews.
+- `public/_headers` sets long-term caching for `/_next/static/*`, an hour (+ stale-while-revalidate) for the timetable, and basic security headers.

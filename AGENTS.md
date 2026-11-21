@@ -19,3 +19,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Advance-booking rules: `src/lib/advance.ts` (tested). Holiday list: `src/lib/holidays.ts`; update it each year from the Tamil Nadu holidays G.O. (dates verified against the G.O. PDF, not news sites).
 - GTFS → dataset logic is `src/lib/buildDataset.ts`, shared by `scripts/build-data.ts` and the in-browser Sync (`src/workers/sync.worker.ts`, result saved in localStorage `tn.dataset`).
 - Run `bun run check` before committing.
+- SEO/AEO: metadata in `src/app/layout.tsx`; JSON-LD (WebApplication + FAQPage), FAQ and footer are rendered into the static HTML by `src/app/page.tsx`; FAQ text lives in `src/lib/faq.ts`. `robots.ts`, `sitemap.ts`, `manifest.ts`, `opengraph-image.tsx` are static.
+- Set `NEXT_PUBLIC_SITE_URL` (Cloudflare build variable) to the live address so canonical links, sitemap and share previews are correct (`src/lib/site.ts`).
+- Cache/security headers for Cloudflare static assets: `public/_headers`.
+- The Advance/Holidays tabs are lazy-loaded (`next/dynamic`); keep heavy, rarely used UI out of the first bundle.

@@ -36,14 +36,15 @@ export default function SyncButton({ data, onData, className = "" }: { data: Dat
       else if (m.type === "same") { setState({ kind: "ok", text: `Up to date (${feedDate(m.version)})` }); w.terminate(); }
       else if (m.type === "error") { setState({ kind: "err", text: m.message }); w.terminate(); }
       else if (m.type === "done") {
-        try { localStorage.setItem(DATASET_KEY, JSON.stringify(m.data)); } catch { /* storage full or blocked: still use it for this visit */ }
+        const { e, nb, ...slim } = m.data; void e; void nb;
+        try { localStorage.setItem(DATASET_KEY, JSON.stringify(slim)); } catch { /* storage full or blocked: still use it for this visit */ }
         onData(m.data);
         setState({ kind: "ok", text: `Updated to ${feedDate(m.data.feed)} · ${m.data.t.length} trains` });
         w.terminate();
       }
     };
     w.onerror = () => { setState({ kind: "err", text: "Sync stopped unexpectedly. Try again." }); w.terminate(); };
-    const req: SyncRequest = { current: data.feed, geo: { tnRings: data.b, outline: data.b, neighbours: data.nb } };
+    const req: SyncRequest = { current: data.feed, geo: { tnRings: data.b, outline: data.b } };
     w.postMessage(req);
   };
 

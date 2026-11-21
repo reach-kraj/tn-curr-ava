@@ -82,9 +82,12 @@ async function main() {
     .flatMap((f) => outerRings(f).filter((r) => area(r) >= 0.01).map((r) => ({ n: f.properties.NAME_1, r: simplifyRing(r, 0.012, 2) })));
 
   const data = buildDataset(zip, { tnRings, outline, neighbours }, (m) => console.log(`· ${m}`));
+  // the site has no map: leave out rail links and neighbouring states (≈5 KB compressed)
+  const { e, nb, ...shipped } = data;
+  void nb;
   mkdirSync("public/data", { recursive: true });
-  writeFileSync(OUT, JSON.stringify(data));
-  console.log(`Wrote ${OUT}: ${data.s.length} stations, ${data.t.length} trains, ${data.e.length} track links, feed ${data.feed}`);
+  writeFileSync(OUT, JSON.stringify(shipped));
+  console.log(`Wrote ${OUT}: ${data.s.length} stations, ${data.t.length} trains (${e?.length ?? 0} rail links not shipped), feed ${data.feed}`);
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

@@ -6,14 +6,15 @@ import StationPicker, { type PickOption } from "./StationPicker";
 import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
 import TrainLogo from "./TrainLogo";
-import Footer from "./Footer";
 import Signal from "./Signal";
 import ThemedSelect from "./ThemedSelect";
 import BookButton from "./BookButton";
 import ReminderMenu from "./ReminderMenu";
 import { trainEvent } from "@/lib/reminders";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
-import AdvancePlanner, { DateTile, HolidaysView } from "./AdvancePlanner";
+import dynamic from "next/dynamic";
+import DateTile from "./DateTile";
+import TrainLoader from "./TrainLoader";
 import type { Dataset, Station, TrainStop } from "@/lib/types";
 import {
   RULES, addDays, clock, clockAt, dayLabel, dayWord, departures, duration, shortName, status, toStations, todayIst, type Rule,
@@ -24,6 +25,10 @@ import {
 } from "@/lib/filters";
 import { advanceOpens, breaks, lastBookable, longWeekends } from "@/lib/advance";
 import { HOLIDAYS } from "@/lib/holidays";
+
+// secondary tabs load on first use, keeping the first download small
+const AdvancePlanner = dynamic(() => import("./AdvancePlanner"), { ssr: false, loading: () => <TrainLoader label="Loading the planner…" compact /> });
+const HolidaysView = dynamic(() => import("./AdvancePlanner").then((m) => m.HolidaysView), { ssr: false, loading: () => <TrainLoader label="Loading holidays…" compact /> });
 
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -59,18 +64,7 @@ export default function App() {
 }
 
 function Skeleton() {
-  return (
-    <div className="skeleton" aria-busy="true" aria-label="Loading the Tamil Nadu timetable">
-      <div className="topbar"><div className="wrap topbar-in"><span className="brand"><TrainLogo />TN Train Booking</span></div></div>
-      <div className="wrap sk-body">
-        <div className="sk sk-bar" />
-        <div className="layout">
-          <div className="sk sk-side" />
-          <div className="sk-list">{Array.from({ length: 6 }, (_, i) => <div key={i} className="sk sk-row" />)}</div>
-        </div>
-      </div>
-    </div>
-  );
+  return <TrainLoader />;
 }
 
 type Tab = "now" | "advance" | "holidays";
@@ -373,9 +367,9 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
 
       <main className="wrap layout" id="main">
         <aside className="side" aria-label={`${sel.name} summary`}>
-          <div className="nameboard">
+          <div className="nameboard" key={sel.code}>
             <div className="nameboard-top"><span>{sel.code}</span><span>{sel.n} trains stop</span></div>
-            <h1>{shortName(sel.name)}</h1>
+            <h2 className="nb-name">{shortName(sel.name)}</h2>
             <p className="nb-counts-m">{allRows.length} departing · {openNow} open now</p>
           </div>
           <dl className="counts">
@@ -575,7 +569,6 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
         </section>
       </main>
 
-      <Footer feed={data.feed} stations={stations.length} />
     </div>
   );
 }

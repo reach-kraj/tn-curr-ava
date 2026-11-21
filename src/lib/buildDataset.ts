@@ -65,7 +65,7 @@ export interface Geography {
   tnRings: Ring[];
   /** simplified outline + neighbouring states, carried into the dataset for drawing */
   outline: Ring[];
-  neighbours: { n: string; r: Ring }[];
+  neighbours?: { n: string; r: Ring }[];
 }
 
 export function buildDataset(zip: Uint8Array, geo: Geography, log: (msg: string) => void = () => {}): Dataset {

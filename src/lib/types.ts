@@ -20,9 +20,12 @@ export interface Dataset {
   o: Record<string, string>;
   t: TrainRow[];
   st: Record<string, StopRow[]>;
-  e: [number, number][];
+  /** rail links between stations (map era; not shipped to the site) */
+  e?: [number, number][];
+  /** Tamil Nadu outline: also used by the in-browser sync to decide which stations are in Tamil Nadu */
   b: Ring[];
-  nb: { n: string; r: Ring }[];
+  /** neighbouring state outlines (map era; not shipped to the site) */
+  nb?: { n: string; r: Ring }[];
 }
 
 export interface Station {

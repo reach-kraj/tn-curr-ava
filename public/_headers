@@ -1,0 +1,23 @@
+# Cloudflare static assets: cache headers + basic security headers
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(self), camera=(), microphone=()
+  X-Frame-Options: SAMEORIGIN
+
+# versioned build files never change: cache for a year
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# timetable: fresh within an hour, serve the old copy while refreshing for a day
+/data/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/coffee-qr.png
+  Cache-Control: public, max-age=604800
+
+# share preview image (generated without a file extension)
+/opengraph-image
+  Content-Type: image/png
+  Cache-Control: public, max-age=86400

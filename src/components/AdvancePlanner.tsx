@@ -8,6 +8,7 @@ import { ARP_DAYS, advanceOpens, breaks, lastBookable, longWeekends, openState, 
 import { HOLIDAYS, HOLIDAY_SOURCE } from "@/lib/holidays";
 import { downloadIcs, eventGoogleUrl, eventIcs, type EventInput } from "@/lib/reminders";
 import Signal from "./Signal";
+import DateTile from "./DateTile";
 import ThemedSelect from "./ThemedSelect";
 import BookButton from "./BookButton";
 import ReminderMenu, { type ReminderItem } from "./ReminderMenu";
@@ -21,17 +22,6 @@ function stateText(s: OpenState) {
   return { cls: "soon", text: s.days === 1 ? "Opens tomorrow" : `Opens in ${s.days} days` };
 }
 
-/** A small calendar-page tile for a date. */
-export function DateTile({ day, big = false }: { day: string; big?: boolean }) {
-  const p = istParts(istInstant(day, 0));
-  return (
-    <span className={`dtile${big ? " big" : ""}`} aria-hidden="true">
-      <span className="dtile-m">{MON[p.m - 1]}</span>
-      <span className="dtile-d">{p.d}</span>
-      <span className="dtile-w">{DOW[p.dow]}</span>
-    </span>
-  );
-}
 
 function CalendarIcon() {
   return <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>;
