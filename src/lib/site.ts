@@ -8,4 +8,4 @@ export const SITE_DESCRIPTION =
  * The public address of the site. Set NEXT_PUBLIC_SITE_URL in the Cloudflare build settings
  * (e.g. https://tntrainbooking.in) so canonical links, the sitemap and share previews use it.
  */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://tn-curr-ava.workers.dev").replace(/\/$/, "");
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://tn-curr-ava.reach-kraj28.workers.dev").replace(/\/$/, "");
