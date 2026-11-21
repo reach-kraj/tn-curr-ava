@@ -666,3 +666,16 @@ a { color: var(--accent); }
 .today-plan:hover { background: var(--board); color: var(--board-ink); border-color: var(--board); }
 .today-plan:focus-visible { outline: 2px solid var(--board); outline-offset: 2px; }
 @media (max-width: 900px) { .today-card { flex-wrap: wrap; } .today-plan { width: 100%; } }
+/* three travel options per holiday + leave tips */
+.fest-trips { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.trip { min-width: 0; }
+.trip-k { display: flex; gap: 4px; align-items: baseline; white-space: nowrap; }
+.trip-k small { font-size: 10px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--muted); }
+.trip-day { font-weight: 700; font-size: 13px; }
+.leave-tip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 6px; padding: 7px 10px; border-radius: 10px; background: #fff8db; border: 1px dashed #e9c84a; font-size: 12.5px; color: var(--ink-2); }
+.leave-badge { font-size: 10.5px; font-weight: 800; letter-spacing: 0.04em; color: var(--board-ink); background: var(--board); border-radius: 6px; padding: 1px 6px; }
+.leave-text { flex: 1 1 200px; min-width: 0; }
+@media (max-width: 420px) { .fest-trips { grid-template-columns: 1fr 1fr; } }
+.fest-trips .trip { padding: 6px 8px; }
+.fest-trips .trip-s { font-size: 11px; white-space: nowrap; }
+.fest-trips .trip-day { white-space: nowrap; }

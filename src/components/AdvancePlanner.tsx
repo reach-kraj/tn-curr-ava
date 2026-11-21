@@ -166,9 +166,20 @@ export default function AdvancePlanner({ data, sel, now, stationName, onRoute }:
   );
 }
 
+function TripButton({ kind, hint, day, now, today, onPlan }: { kind: string; hint: string; day: string; now: number; today: string; onPlan: (d: string) => void }) {
+  const st = stateText(openState(day, now, today));
+  const opensOn = istDay(advanceOpens(day));
+  return (
+    <button type="button" className="trip" onClick={() => onPlan(day)}
+      aria-label={`${kind} ${hint} on ${longDay(day)}. ${st.cls === "open" ? "Booking is open" : `Booking opens ${longDay(opensOn)} at 8 AM`}. Plan this.`}>
+      <span className="trip-k">{kind} <small>{hint}</small></span>
+      <span className="trip-day">{dayLabel(day)}</span>
+      <span className={`trip-s ${st.cls}`}>{st.cls === "open" ? "booking open" : `books ${dayLabel(opensOn)}`}</span>
+    </button>
+  );
+}
+
 function FestRow({ b, now, today, onPlan, active }: { b: Break; now: number; today: string; onPlan: (d: string) => void; active: boolean }) {
-  const go = stateText(openState(b.go, now, today));
-  const back = stateText(openState(b.back, now, today));
   const pub = b.holidays.filter((h) => h.kind === "public");
   const extra = b.holidays.filter((h) => h.kind === "festival");
   const span = b.days === 1 ? dayLabel(b.start) : `${dayLabel(b.start)} – ${dayLabel(b.end)}`;
@@ -184,16 +195,23 @@ function FestRow({ b, now, today, onPlan, active }: { b: Break; now: number; tod
           <span className="fest-in">{inDays === 0 ? "today" : `in ${inDays} days`}</span>
         </span>
         {extra.length > 0 && <span className="fest-extra">{extra.map((h) => `${h.name} ${dayLabel(h.date)}`).join(" · ")}</span>}
-        <div className="fest-trips">
-          <button type="button" className="trip" onClick={() => onPlan(b.go)} aria-label={`Plan going on ${longDay(b.go)}: ${go.text}, booking opens ${longDay(istDay(advanceOpens(b.go)))}`}>
-            <span className="trip-top"><span className="trip-k">Go</span>{dayLabel(b.go)}</span>
-            <span className={`trip-s ${go.cls}`}>{go.cls === "open" ? "booking open" : `books ${dayLabel(istDay(advanceOpens(b.go)))}`}</span>
-          </button>
-          <button type="button" className="trip" onClick={() => onPlan(b.back)} aria-label={`Plan returning on ${longDay(b.back)}: ${back.text}, booking opens ${longDay(istDay(advanceOpens(b.back)))}`}>
-            <span className="trip-top"><span className="trip-k">Return</span>{dayLabel(b.back)}</span>
-            <span className={`trip-s ${back.cls}`}>{back.cls === "open" ? "booking open" : `books ${dayLabel(istDay(advanceOpens(b.back)))}`}</span>
-          </button>
+        <div className="fest-trips" role="group" aria-label={`Travel options for ${pub[0]?.name ?? "this holiday"}`}>
+          <TripButton kind="Go" hint="day before" day={b.go} now={now} today={today} onPlan={onPlan} />
+          <TripButton kind="Return" hint={b.days === 1 ? "same evening" : "last day"} day={b.back} now={now} today={today} onPlan={onPlan} />
+          <TripButton kind="Return" hint="day after" day={b.after} now={now} today={today} onPlan={onPlan} />
         </div>
+        {b.leave.map((l) => (
+          <div key={l.day} className="leave-tip">
+            <span className="leave-badge">+1 leave</span>
+            <span className="leave-text">
+              Take <b>{dayLabel(l.day)}</b> off and get <b>{l.days} days</b>: {dayLabel(l.start)} – {dayLabel(l.end)}
+            </span>
+            <button type="button" className="linkbtn" onClick={() => onPlan(addDays(l.start, -1))}
+              aria-label={`Plan going on ${longDay(addDays(l.start, -1))} for the ${l.days}-day break`}>
+              Go {dayLabel(addDays(l.start, -1))}
+            </button>
+          </div>
+        ))}
       </div>
     </li>
   );

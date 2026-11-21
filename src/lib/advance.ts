@@ -29,11 +29,20 @@ export function openState(originDay: string, now: number, today: string): OpenSt
 
 const isWeekend = (day: string) => { const d = istParts(istInstant(day, 0)).dow; return d === 0 || d === 6; };
 
+export interface Leave {
+  /** the one working day to take off */
+  day: string;
+  /** the longer break it creates */
+  start: string; end: string; days: number;
+}
+
 export interface Break {
   start: string; end: string; days: number;
   holidays: Holiday[];
-  /** suggested travel: leave the evening before the break, come back on its last day */
-  go: string; back: string;
+  /** suggested travel: leave the day before the break, come back on its last day or the day after */
+  go: string; back: string; after: string;
+  /** single days of leave that join this break to a weekend or another holiday */
+  leave: Leave[];
 }
 
 /**
@@ -52,10 +61,24 @@ export function breaks(list: Holiday[], from: string): Break[] {
     while (off(addDays(end, 1))) end = addDays(end, 1);
     for (let d = start; d <= end; d = addDays(d, 1)) seen.add(d);
     const inRange = (d: string) => d >= addDays(start, -1) && d <= end;
+    // one working day that, taken off, joins this break to the off-days next to it
+    const leave: Leave[] = [];
+    const before = addDays(start, -1), after = addDays(end, 1);
+    if (!off(before) && off(addDays(before, -1))) {
+      let s = addDays(before, -1);
+      while (off(addDays(s, -1))) s = addDays(s, -1);
+      leave.push({ day: before, start: s, end, days: dayDiff(s, end) + 1 });
+    }
+    if (!off(after) && off(addDays(after, 1))) {
+      let e = addDays(after, 1);
+      while (off(addDays(e, 1))) e = addDays(e, 1);
+      leave.push({ day: after, start, end: e, days: dayDiff(start, e) + 1 });
+    }
     out.push({
       start, end, days: dayDiff(start, end) + 1,
       holidays: list.filter((x) => inRange(x.date)),
-      go: addDays(start, -1), back: end,
+      go: addDays(start, -1), back: end, after,
+      leave,
     });
   }
   return out;

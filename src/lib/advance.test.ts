@@ -52,9 +52,24 @@ describe("holiday breaks (TN offices closed Sat + Sun)", () => {
     const c = list[0];
     expect([c.start, c.end, c.days]).toEqual(["2026-12-25", "2026-12-27", 3]);
   });
-  test("Republic Day 2027 (Tue) is a single day", () => {
+  test("Republic Day 2027 (Tue): go Mon 25, return Tue 26 or Wed 27", () => {
     const r = list.find((b) => b.start === "2027-01-26")!;
     expect(r.days).toBe(1);
+    expect([r.go, r.back, r.after]).toEqual(["2027-01-25", "2027-01-26", "2027-01-27"]);
+  });
+  test("leave tip: Mon 25 Jan off joins Thai Poosam weekend to Republic Day (Fri 22 – Tue 26, 5 days)", () => {
+    const r = list.find((b) => b.start === "2027-01-26")!;
+    expect(r.leave).toEqual([{ day: "2027-01-25", start: "2027-01-22", end: "2027-01-26", days: 5 }]);
+    const t = list.find((b) => b.holidays.some((h) => h.name === "Thai Poosam"))!;
+    expect(t.leave).toEqual([{ day: "2027-01-25", start: "2027-01-22", end: "2027-01-26", days: 5 }]);
+  });
+  test("leave tip for a Thursday holiday: take Friday off (Deepavali Thu 28 Oct 2027)", () => {
+    const d = list.find((b) => b.holidays.some((h) => h.name === "Deepavali"))!;
+    expect(d.leave).toEqual([{ day: "2027-10-29", start: "2027-10-28", end: "2027-10-31", days: 4 }]);
+  });
+  test("no leave tip mid-week (Ramzan Wed 10 Mar 2027)", () => {
+    const r = list.find((b) => b.holidays.some((h) => h.name.startsWith("Ramzan")))!;
+    expect(r.leave).toEqual([]);
   });
   test("Ayutha Pooja + Vijaya Dasami (Fri, Sat) make a 3-day break", () => {
     const a = list.find((b) => b.holidays.some((h) => h.name === "Ayutha Pooja"))!;
