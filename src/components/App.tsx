@@ -2,7 +2,7 @@
 
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import WorldMap, { type MapPadding } from "./WorldMap";
-import StationSearch from "./StationSearch";
+import StationSearch, { type TrainHit } from "./StationSearch";
 import TrainCard from "./TrainCard";
 import FlapTime from "./FlapTime";
 import SyncButton, { DATASET_KEY } from "./SyncButton";
@@ -81,6 +81,11 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
     out.forEach((l) => l.sort((a, b) => key(a) - key(b)));
     return out;
   }, [data, byCode]);
+
+  const trainHits = useMemo<TrainHit[]>(
+    () => data.t.map(([num, name, orig, dest], ti) => ({ ti, num, name, from: shortName(stationName(orig)), to: shortName(stationName(dest)) })),
+    [data, stationName],
+  );
 
   const mobile = useIsMobile();
   const vh = useViewportHeight();
@@ -164,6 +169,21 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       listRef.current?.querySelector<HTMLElement>(`[data-ti="${ti}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
     }));
   };
+  const pickTrain = (ti: number) => {
+    // board where the user already is if the train stops there, else its first boardable Tamil Nadu stop
+    const boardable = trainStops[ti].filter((x) => x.dep >= 0);
+    const at = boardable.find((x) => x.station.code === sel.code) ?? boardable[0];
+    if (!at) return;
+    if (at.station.code !== sel.code) selectStation(at.station, true);
+    // if the current filters would hide it (e.g. not running that day, unreserved), relax them so it shows
+    const onBoard = applyBoardFilters(
+      departures(data, at.station.code, travelDay, rule, { reservedOnly, runningOnly, query }),
+      { ...bf, to: "" }, now, (t) => trainStops[t],
+    ).some((r) => r.ti === ti);
+    if (!onBoard) { setBf(NO_FILTERS); setQuery(""); setRunningOnly(false); setReservedOnly(false); }
+    showTrain(ti);
+  };
+
   const toggle = useCallback((ti: number) => {
     setOpenTi((o) => (o === ti ? null : ti));
     setHoverTi(null);
@@ -230,7 +250,7 @@ function Explorer({ data, onData }: { data: Dataset; onData: (d: Dataset) => voi
       <header className="brand">
         <span className="eyebrow-tag"><i />Tamil Nadu · Current availability</span>
         <h1>Pick a station. See when current availability opens for every train.</h1>
-        <StationSearch stations={stations} onPick={(s) => selectStation(s, true)} />
+        <StationSearch stations={stations} trains={trainHits} onPick={(s) => selectStation(s, true)} onPickTrain={pickTrain} />
         <SyncButton data={data} onData={onData} className="sync-brand" />
       </header>
 
