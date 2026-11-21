@@ -31,7 +31,7 @@ export default function Footer({ feed, stations }: { feed: string; stations: num
 
       <div className="wrap foot-grid">
         <div className="foot-about">
-          <span className="foot-brand"><TrainLogo height={22} /> TN Train Booking</span>
+          <span className="foot-brand"><TrainLogo height={22} /> Bogiey</span>
           <p>Know exactly when booking opens for Tamil Nadu trains: current availability, the 60-day advance booking window, Tatkal, and holidays worth travelling for.</p>
           <div className="foot-coffee">
             <span>Saved you a queue at the counter?</span>

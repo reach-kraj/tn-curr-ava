@@ -46,7 +46,7 @@ export default function Page() {
       {/* start downloading the timetable while the app code loads */}
       <link rel="preload" href="/data/tn.json" as="fetch" crossOrigin="anonymous" />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
-      <h1 className="sr-only">{SITE_NAME}: when current availability and advance booking open for Tamil Nadu trains</h1>
+      <h1 className="sr-only">{SITE_NAME}: train timings and when current availability and advance booking open for Tamil Nadu trains</h1>
       <App />
       <Faq />
       <Footer feed={data.feed} stations={data.s.length} />

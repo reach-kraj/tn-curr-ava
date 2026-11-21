@@ -23,3 +23,4 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Set `NEXT_PUBLIC_SITE_URL` (Cloudflare build variable) to the live address so canonical links, sitemap and share previews are correct (`src/lib/site.ts`).
 - Cache/security headers for Cloudflare static assets: `public/_headers`.
 - The Advance/Holidays tabs are lazy-loaded (`next/dynamic`); keep heavy, rarely used UI out of the first bundle.
+- Hosting: main site is Firebase Hosting `https://bogiey.web.app` (project `bogiey`, `firebase.json`, deployed by `.github/workflows/firebase-deploy.yml` with secret `FIREBASE_SERVICE_ACCOUNT_BOGIEY`). Cloudflare (Workers static assets, `wrangler.jsonc`) builds the same commit as a mirror. Keep cache/security headers in `public/_headers` and `firebase.json` in sync. Canonical/sitemap always point at `SITE_URL`.

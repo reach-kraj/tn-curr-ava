@@ -10,7 +10,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", weigh
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME}: when does booking open for Tamil Nadu trains?`, template: `%s · ${SITE_NAME}` },
+  title: { default: `${SITE_NAME}: train timings and booking times for Tamil Nadu`, template: `%s · ${SITE_NAME}` },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   keywords: [
@@ -22,13 +22,13 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     type: "website", locale: "en_IN", url: "/", siteName: SITE_NAME,
-    title: `${SITE_NAME}: when does booking open for Tamil Nadu trains?`,
+    title: `${SITE_NAME}: train timings and booking times for Tamil Nadu`,
     description: SITE_DESCRIPTION,
   },
   twitter: { card: "summary_large_image", title: SITE_NAME, description: SITE_DESCRIPTION },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-snippet": -1, "max-image-preview": "large" } },
   formatDetection: { telephone: false, address: false, email: false },
-  appleWebApp: { capable: true, title: "TN Trains", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: SITE_NAME, statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

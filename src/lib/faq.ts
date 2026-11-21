@@ -39,7 +39,7 @@ export const FAQS: Faq[] = [
     a: "On the IRCTC website, or in the official IRCTC Rail Connect and RailOne apps. The Book button opens IRCTC on a computer and offers the apps on a phone.",
   },
   {
-    q: "Is TN Train Booking free? Is it an official Indian Railways site?",
+    q: "Is Bogiey free? Is it an official Indian Railways site?",
     a: "It is free and needs no sign-up. It is an independent tool and is not affiliated with Indian Railways, CRIS or IRCTC.",
   },
 ];

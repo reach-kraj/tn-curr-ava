@@ -66,7 +66,7 @@ export function icsFile(r: ReminderInput, now = Date.now()): string {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//TN Train Booking//EN",
+    "PRODID:-//Bogiey//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
@@ -104,7 +104,7 @@ export function eventGoogleUrl(e: EventInput): string {
 export function eventIcs(e: EventInput, now = Date.now()): string {
   const alarm = (trigger: string, what: string) => ["BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${esc(what)}`, `TRIGGER:${trigger}`, "END:VALARM"];
   return [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//TN Train Booking//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Bogiey//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
     "BEGIN:VEVENT",
     `UID:${e.uid}@tn-curr-ava`,
     `DTSTAMP:${icsStamp(now)}`,

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 const UPI_ID = "kraj280597@oksbi";
 const PAYEE = "Karthickraj Gangadharan";
 // encodeURIComponent (not URLSearchParams) so spaces become %20: some UPI apps show "+" literally
-const UPI_LINK = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(PAYEE)}&cu=INR&tn=${encodeURIComponent("Coffee for TN Train Booking")}`;
+const UPI_LINK = `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(PAYEE)}&cu=INR&tn=${encodeURIComponent("Coffee for Bogiey")}`;
 
 /** "Buy me a coffee": a modal with the UPI QR code, a deep link to UPI apps and a copyable UPI ID. */
 export default function CoffeeDialog({ className = "" }: { className?: string }) {
